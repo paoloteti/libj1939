@@ -1,0 +1,104 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
+#include <linux/can.h>
+#include <linux/can/raw.h>
+
+#include "j1939.h"
+
+static int cansock;
+
+static int connect_canbus(const char *can_ifname)
+{
+	int sock;
+	struct ifreq ifr;
+	struct sockaddr_can addr;
+
+	sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (sock < 0) {
+		return sock;
+	}
+
+	strncpy(ifr.ifr_name, can_ifname, IFNAMSIZ);
+	ioctl(sock, SIOCGIFINDEX, &ifr);
+
+	memset(&addr, 0, sizeof(addr));
+	addr.can_family = AF_CAN;
+	addr.can_ifindex = ifr.ifr_ifindex;
+
+	return bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+}
+
+int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
+{
+	int ret;
+	struct can_frame frame;
+
+	frame.can_id = id;
+	frame.can_dlc = len;
+	memcpy(frame.data, data, frame.can_dlc);
+
+	ret = write(cansock, &frame, sizeof(frame));
+	if (ret != sizeof(frame)) {
+		return -1;
+	}
+	return ret;
+}
+
+int j1939_canrcv(uint32_t *id, uint8_t *data)
+{
+	int ret;
+	struct can_frame frame;
+
+	ret = read(cansock, &frame, sizeof(frame));
+	if (ret != sizeof(frame)) {
+		return -1;
+	}
+
+	memcpy(data, frame.data, frame.can_dlc);
+	return frame.can_dlc;
+}
+
+int main(void)
+{
+	int ret, ntimes = 32;
+	const uint8_t src = 0x10;
+	const uint8_t dest = 0x20;
+	struct j1939_pgn pgn = J1939_INIT_PGN(0x0, 0xFE, 0xF6);
+
+	uint8_t data[8] = {
+		J1930_NA_8, /* Particulate Trap Inlet Pressure (SPN 81) */
+		J1930_NA_8, /* Boost Pressure (SPN 102) */
+		0x46, /* Intake Manifold 1 Temperature (SPN 105) */
+		J1930_NA_8, /* Air Inlet Pressure (SPN 106) */
+		J1930_NA_8, /* Air Filter 1 Differential. Pressure (SPN 107) */
+		0x40, /* Exhaust Gas Temperature (SPN 173) - MSB */
+		0x40, /* Exhaust Gas Temperature (SPN 173) - LSB */
+		J1930_NA_8, /* Coolant Filter Differ. Pressure 112) */
+	};
+
+	cansock = connect_canbus("vcan0");
+	if (cansock < 0) {
+		perror("Opening CANbus vcan0");
+		return 1;
+	}
+
+	do {
+		ret = j1939_tp(&pgn, J1939_PRIORITY_LOW, src, dest, data, 8);
+		printf("J1939 TP returns with code %d", ret);
+		data[2]++;
+	} while (ntimes-- && ret >= 0);
+
+	close(cansock);
+	return 0;
+}
