@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/paoloteti/libj1939.svg?branch=master)](https://travis-ci.org/paoloteti/libj1939)
+
 # J1939 Library
 
 Library to work with J1939 Frames used in CAN bus in car and trucks industries
