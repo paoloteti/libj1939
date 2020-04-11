@@ -1,0 +1,17 @@
+*.elf
+*.o
+*.d
+*.map
+*.bin
+*.srec
+
+# IDE/Editor
+.vscode
+
+# Thumbnails
+._*
+
+# Code Coverage (GCOV)
+*.gcno
+*.gcda
+*.gcov
