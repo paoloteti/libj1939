@@ -2,7 +2,8 @@
 
 # J1939 Library
 
-Library to work with J1939 Frames used in CAN bus in car and trucks industries
+Library to work with J1939 Frames used in CAN bus in car and trucks industries.
+`libj1939` is intended to be used in microcontrollers.
 
 ## Coding style
 
