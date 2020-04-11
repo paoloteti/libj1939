@@ -1,8 +1,8 @@
-language: generic
-
+language: c
+os: linux
 dist: bionic
 
-matrix:
+jobs:
   include:
     - os: linux
       compiler: "gcc-7"
