@@ -30,13 +30,22 @@
 #define J1930_MAX_8 0xFAu
 #define J1930_MAX_16 0xFAFFu
 
-extern int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len);
-extern int j1939_canrcv(uint32_t *id, uint8_t *data);
-
 struct j1939_pgn {
-	uint8_t data_page;
-	uint8_t pdu_format;
-	uint8_t pdu_specific;
+	union {
+		struct {
+			uint8_t data_page;
+			uint8_t pdu_format;
+			uint8_t pdu_specific;
+		} j1939;
+		uint32_t raw;
+	} addr;
+};
+
+struct j1939_pgn_filter {
+	struct j1939_pgn pgn;
+	struct j1939_pgn pgn_mask;
+	uint8_t addr;
+	uint8_t addr_mask;
 };
 
 /** @brief Timeouts ([msec]) according SAE J1939/21 */
@@ -56,9 +65,14 @@ enum j1939_timeouts {
 /** @brief Initialize Parameter Group Number using 3 bytes */
 #define J1939_INIT_PGN(_dp, _format, _specific)                                \
 	{                                                                      \
-		.data_page = _dp & 0x01u, .pdu_format = _format,               \
-		.pdu_specific = _specific,                                     \
+		.addr.j1939.data_page = _dp & 0x01u,                           \
+		.addr.j1939.pdu_format = _format,                              \
+		.addr.j1939.pdu_specific = _specific,                          \
 	}
+
+extern int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len);
+extern int j1939_canrcv(uint32_t *id, uint8_t *data);
+extern int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters);
 
 bool static inline j1939_valid_priority(const uint8_t p)
 {
@@ -68,7 +82,7 @@ bool static inline j1939_valid_priority(const uint8_t p)
 /** @brief Check if PDU format < 240 (peer-to-peer) */
 static inline bool j1939_pdu_is_p2p(const struct j1939_pgn *pgn)
 {
-	return pgn->pdu_format < 240u;
+	return pgn->addr.j1939.pdu_format < 240u;
 }
 
 /** @brief Check if PDU format >= 240 (broadcast) */
@@ -79,15 +93,16 @@ static inline bool j1939_pdu_is_broadcast(const struct j1939_pgn *pgn)
 
 static inline void j1939_pgn_from_id(struct j1939_pgn *pgn, const uint32_t id)
 {
-	pgn->pdu_format = (id >> 16) & 0x000000FFu;
-	pgn->pdu_specific = (id >> 8) & 0x000000FFu;
-	pgn->data_page = (id >> 24) & 0x00000001u;
+	pgn->addr.j1939.pdu_format = (id >> 16) & 0x000000FFu;
+	pgn->addr.j1939.pdu_specific = (id >> 8) & 0x000000FFu;
+	pgn->addr.j1939.data_page = (id >> 24) & 0x00000001u;
 }
 
 static inline uint32_t j1939_pgn_to_id(const struct j1939_pgn *pgn)
 {
-	return ((uint32_t)pgn->data_page << 16) |
-	       ((uint32_t)pgn->pdu_format << 8) | (uint32_t)pgn->pdu_specific;
+	return ((uint32_t)pgn->addr.j1939.data_page << 16) |
+	       ((uint32_t)pgn->addr.j1939.pdu_format << 8) |
+	       (uint32_t)pgn->addr.j1939.pdu_specific;
 }
 
 int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,

@@ -1,5 +1,12 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 
+/*
+ * NOTE: This is just an example.
+ *
+ * Linux has is own J1939 kernel module, so there is no need to use
+ * this library.
+ */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -13,6 +20,7 @@
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#include <linux/can/j1939.h>
 
 #include "j1939.h"
 
@@ -37,6 +45,19 @@ static int connect_canbus(const char *can_ifname)
 	addr.can_ifindex = ifr.ifr_ifindex;
 
 	return bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+}
+
+int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters)
+{
+	struct j1939_filter filt[num_filters];
+
+	for (int i = 0; i < num_filters; i++) {
+		filt[i].pgn = filter[i].pgn.addr.raw;
+		filt[i].pgn_mask = filter[i].pgn_mask.addr.raw;
+	}
+
+	setsockopt(cansock, SOL_CAN_J1939, SO_J1939_FILTER, &filt,
+		   sizeof(filt));
 }
 
 int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
