@@ -1,0 +1,23 @@
+language: generic
+
+dist: bionic
+
+matrix:
+  include:
+    - os: linux
+      compiler: "gcc-7"
+      env: BUILD='Debug' CC=gcc-7 CXX=g++-7
+      dist: bionic
+      addons: *gcc7
+
+    - os: linux
+      compiler: "gcc-7"
+      env: BUILD='Release' CC=gcc-7 CXX=g++-7
+      dist: bionic
+      addons: *gcc7
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=${BUILD} ..
+  - cmake --build .
