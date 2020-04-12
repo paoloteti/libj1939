@@ -21,3 +21,7 @@ script:
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=${BUILD} ..
   - cmake --build .
+
+notifications:
+  email:
+    on_success: never
