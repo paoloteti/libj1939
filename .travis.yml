@@ -16,6 +16,12 @@ jobs:
       dist: bionic
       addons: *gcc7
 
+    - os: linux
+      arch: arm64
+      compiler: "gcc"
+      env: BUILD='Release'
+      dist: bionic
+
 script:
   - mkdir build
   - cd build
