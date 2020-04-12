@@ -51,18 +51,21 @@ set_property(TARGET
 
 #
 # Doxygen
-#             
-find_package(Doxygen
-             REQUIRED dot
-             OPTIONAL_COMPONENTS mscgen dia)
+#
+if (GENERATE_DOC)
+    find_package(Doxygen
+                 REQUIRED dot
+                 OPTIONAL_COMPONENTS mscgen dia)
 
-set(DOXYGEN_GENERATE_HTML YES)
-set(DOXYGEN_GENERATE_MAN NO)
-set(DOXYGEN_GENERATE_LATEX NO)
-set(DOXYGEN_PROJECT_NAME "CANopenNode")
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_GENERATE_MAN NO)
+    set(DOXYGEN_GENERATE_LATEX NO)
+    set(DOXYGEN_PROJECT_NAME "Lib J1939")
 
-doxygen_add_docs(
-    doxygen
-    ${PROJECT_SOURCE_DIR}
-    COMMENT "Generate html pages"
-)
+    doxygen_add_docs(
+         doxygen
+        ${PROJECT_SOURCE_DIR}
+        COMMENT "Generate html pages"
+    )
+endif()
+
