@@ -19,6 +19,8 @@
 #define J1930_NA_8 J1930_NOT_AVAILABLE_8
 #define J1930_NOT_AVAILABLE_16 0xFF00u
 #define J1930_NA_16 J1930_NOT_AVAILABLE_16
+#define J1930_NA_16_MSB (J1930_NOT_AVAILABLE_16 >> 8)
+#define J1930_NA_16_LSB (J1930_NOT_AVAILABLE_16 & 0xFF)
 
 /** @brief indicates that the parameter is "not valid" or "in error" */
 #define J1930_NOT_VALID_8 0xFEu

@@ -3,7 +3,7 @@
 /*
  * NOTE: This is just an example.
  *
- * Linux has is own J1939 kernel module, so there is no need to use
+ * Linux has its own J1939 kernel module, so there is no need to use
  * this library.
  */
 
@@ -107,8 +107,8 @@ int main(void)
 		0x46, /* Intake Manifold 1 Temperature (SPN 105) */
 		J1930_NA_8, /* Air Inlet Pressure (SPN 106) */
 		J1930_NA_8, /* Air Filter 1 Differential. Pressure (SPN 107) */
-		0x00, /* Exhaust Gas Temperature (SPN 173) - MSB */
-		0xFF, /* Exhaust Gas Temperature (SPN 173) - LSB */
+		J1930_NA_16_MSB, /* Exhaust Gas Temperature (SPN 173) - MSB */
+		J1930_NA_16_LSB, /* Exhaust Gas Temperature (SPN 173) - LSB */
 		J1930_NA_8, /* Coolant Filter Differ. Pressure 112) */
 	};
 
