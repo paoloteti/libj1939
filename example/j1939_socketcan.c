@@ -77,7 +77,7 @@ int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
 	if (ret != sizeof(frame)) {
 		return -1;
 	}
-	return ret;
+	return frame.can_dlc;
 }
 
 int j1939_canrcv(uint32_t *id, uint8_t *data)
