@@ -46,8 +46,8 @@ int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
 		return -1;
 	}
 
-	id = ((uint32_t)priority << 26) | (j1939_pgn_to_id(pgn) << 8) |
-	     (uint32_t)src;
+	id = ((uint32_t)priority << 26) |
+	     ((j1939_pgn_to_id(pgn) & 0x3FFFF) << 8) | (uint32_t)src;
 
 	/* If PGN is peer-to-peer, add destination address to the ID */
 	if (j1939_pdu_is_p2p(pgn)) {
