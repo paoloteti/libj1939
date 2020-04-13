@@ -32,6 +32,83 @@
 #define J1930_MAX_8 0xFAu
 #define J1930_MAX_16 0xFAFFu
 
+#define J1939_INDUSTRY_GROUP_GLOBAL 0u
+#define J1939_INDUSTRY_GROUP_ON_HIGHWAY 1u
+#define J1939_INDUSTRY_GROUP_AGRICULTURAL 2u
+#define J1939_INDUSTRY_GROUP_CONSTRUCTION 3u
+#define J1939_INDUSTRY_GROUP_MARINE 4u
+#define J1939_INDUSTRY_GROUP_INDUSTRIAL 5u
+
+#define J1939_NO_ADDRESS_CAPABLE 0u
+#define J1939_ADDRESS_CAPABLE 1u
+
+struct j1939_name {
+	/*
+	 * 21-bit Identity Number
+	 * A unique number which identifies the particular device in a
+	 * manufacturer specific way.
+	 */
+	uint64_t identity_number : 21;
+	/*
+	 * 11-bit Manufacturer Code
+	 * One of the predefined J1939 manufacturer codes.
+	 */
+	uint64_t manufacturer_code : 11;
+	/*
+	 * 3-bit ECU Instance
+	 * Identify the ECU instance if multiple ECUs are involved in
+	 * performing a single function. Normally set to 0.
+	 */
+	uint64_t ecu_instance : 3;
+	/*
+	 * 5-bit Function Instance
+	 * Instance number of a function to distinguish two or more devices
+	 * with the same function number in the same J1939 network.
+	 * The first instance is assigned to the instance number 0.
+	 */
+	uint64_t function_instance : 5;
+	/*
+	 * 8-bit Function
+	 * One of the predefined J1939 functions. The same function value
+	 * (upper 128 only) may mean different things for different Industry
+	 * Groups or Vehicle Systems.
+	 */
+	uint64_t function : 8;
+	/*
+	 * 1-bit Reserved
+	 * This field is reserved for future use by SAE.
+	 */
+	uint64_t reserved : 1;
+	/*
+	 * 7-bit Vehicle System
+	 * A subcomponent of a vehicle, that includes one or more J1939
+	 * segments and may be connected or disconnected from the vehicle.
+	 * A Vehicle System may be made of one or more functions. The Vehicle
+	 * System depends on the Industry Group definition.
+	 */
+	uint64_t vehicle_system : 7;
+	/*
+	 * 4-bit Vehicle System Instance
+	 * Instance number of a vehicle system to distinguish two or more
+	 * device with the same Vehicle System number in the same J1939
+	 * network.
+	 * The first instance is assigned to the instance number 0.
+	 */
+	uint64_t vehicle_system_instance : 4;
+	/*
+	 * 3-bit Industry Group
+	 * One of the predefined J1939 industry groups.
+	 */
+	uint64_t industry_group : 3;
+	/*
+	 * 1-bit Arbitrary Address Capable
+	 * Indicate the capability to solve address conflicts.
+	 * Set to 1 if the device is Arbitrary Address Capable, set to 0 if
+	 * it's Single Address Capable.
+	 */
+	uint64_t arbitrary_address_capable : 1;
+};
+
 struct j1939_pgn {
 	uint8_t data_page;
 	uint8_t pdu_format;
@@ -110,5 +187,7 @@ int j1939_receive(struct j1939_pgn *pgn, uint8_t *priority, uint8_t *src,
 
 int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	     const uint8_t dst, uint8_t *data, const uint16_t len);
+
+int j1939_address_claimed(uint8_t src, struct j1939_name *name);
 
 #endif /* __J1939_H__ */

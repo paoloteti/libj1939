@@ -6,6 +6,8 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+#include "bits.h"
 #include "compiler.h"
 #include "j1939.h"
 
@@ -17,6 +19,7 @@
 
 static const struct j1939_pgn TP_CM = J1939_INIT_PGN(0x00u, 0xECu, 0x00u);
 static const struct j1939_pgn TP_DT = J1939_INIT_PGN(0x00u, 0xEBu, 0x00u);
+static const struct j1939_pgn AC = J1939_INIT_PGN(0x00u, 0xEE, 0x00u);
 
 static int send_tp_rts(uint8_t priority, uint8_t src, uint8_t dst,
 		       uint16_t size, uint8_t num_packets)
@@ -140,4 +143,17 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	}
 
 	return send_tp_eom_ack(src, dst, 8, num_packets + odd_packet);
+}
+
+int j1939_address_claimed(uint8_t src, struct j1939_name *name)
+{
+	const uint8_t dest = 0xFE;
+#if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+	uint64_t n;
+	memcpy(&n, name, sizeof(n));
+	n = swap64(n);
+	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)&n, 8);
+#else
+	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)name, 8);
+#endif
 }
