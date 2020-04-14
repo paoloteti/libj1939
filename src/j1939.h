@@ -24,7 +24,7 @@
 
 /** @brief indicates that the parameter is "not valid" or "in error" */
 #define J1930_NOT_VALID_8 0xFEu
-#define J1930_NV_8 J J1930_NOT_VALID_8
+#define J1930_NV_8 J1930_NOT_VALID_8
 #define J1930_NOT_VALID_16 0xFE00u
 #define J1930_NV_16 J1930_NOT_VALID_16
 
