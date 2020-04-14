@@ -20,7 +20,10 @@
 static const struct j1939_pgn BAM = J1939_INIT_PGN(0x00u, 0xFEu, 0xEC);
 static const struct j1939_pgn TP_CM = J1939_INIT_PGN(0x00u, 0xECu, 0x00u);
 static const struct j1939_pgn TP_DT = J1939_INIT_PGN(0x00u, 0xEBu, 0x00u);
+/** @brief Address Claimed */
 static const struct j1939_pgn AC = J1939_INIT_PGN(0x00u, 0xEE, 0x00u);
+/** @brief Request for Address Claimed */
+static const struct j1939_pgn RAC = J1939_INIT_PGN(0x00u, 0xEA, 0x00u);
 
 static int send_tp_rts(uint8_t priority, uint8_t src, uint8_t dst,
 		       uint16_t size, uint8_t num_packets)
@@ -207,4 +210,25 @@ int j1939_address_claimed(uint8_t src, struct j1939_name *name)
 #else
 	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)name, 8);
 #endif
+}
+
+int j1939_cannot_claim_address(struct j1939_name *name)
+{
+	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, ADDRESS_NOT_CLAIMED,
+			  ADDRESS_GLOBAL, (uint8_t *)&name, 8);
+}
+
+int j1939_address_claim(const uint8_t src, struct j1939_name *name)
+{
+	int ret;
+
+	/* Send Request for Address Claimed */
+	ret = j1939_send(&RAC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
+			 (uint8_t *)&AC, 3);
+	if (unlikely(ret < 0)) {
+		return ret;
+	}
+
+	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
+			  (uint8_t *)name, 8);
 }

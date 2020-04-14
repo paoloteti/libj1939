@@ -9,9 +9,11 @@
 #define J1939_MAX_DATA_LEN 1785
 
 #define ADDRESS_GLOBAL 0xFFu
+#define ADDRESS_NOT_CLAIMED 0xFEu
 #define ADDRESS_NULL 0xEFu
 
 #define J1939_PRIORITY_HIGH 0x0u
+#define J1939_PRIORITY_DEFAULT 0x6u
 #define J1939_PRIORITY_LOW 0x7u
 
 #define REASON_BUSY 0x01u /*<! Node is busy */
@@ -216,6 +218,10 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	     const uint8_t dst, uint8_t *data, const uint16_t len);
 
 int j1939_address_claimed(uint8_t src, struct j1939_name *name);
+
+int j1939_address_claim(const uint8_t src, struct j1939_name *name);
+
+int j1939_cannot_claim_address(struct j1939_name *name);
 
 int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 		const uint16_t len);
