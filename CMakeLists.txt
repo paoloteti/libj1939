@@ -23,6 +23,8 @@ configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 
 set(J1939_DIR ${PROJECT_SOURCE_DIR}/src)
+set(J1939_INC_DIR ${PROJECT_SOURCE_DIR}/include)
+
 set(J1939_EXAMPLE_DIR ${PROJECT_SOURCE_DIR}/example)
 
 set(J1939_SRC
@@ -30,7 +32,10 @@ set(J1939_SRC
     ${J1939_DIR}/j1939_ecu.c
 )
 
-include_directories(${J1939_DIR})
+include_directories(
+    ${J1939_DIR}
+    ${J1939_INC_DIR}
+)
 
 add_library(${TARGET} STATIC ${J1939_SRC})
 
