@@ -15,7 +15,7 @@ endif()
 # Search default paths for the GNU ARM Embedded Toolchain
 # This will need to be changed if you have it in a different directory.
 find_path(TOOLCHAIN_BIN_PATH "${TOOLCHAIN_TRIPLE}gcc${TOOLCHAIN_SUFFIX}"
-    PATHS "/usr/local/bin"                                       # Linux, Mac
+    PATHS "/usr/bin"                                             # Linux, Mac
     PATHS "C:/Program Files (x86)/GNU Tools ARM Embedded/*/bin"  # Default on Windows
     DOC "Toolchain binaries directory")
 

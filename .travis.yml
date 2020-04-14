@@ -22,12 +22,28 @@ jobs:
       env: BUILD='Release'
       dist: bionic
 
+allow_failures:
+    - os: linux
+      compiler: "arm-none-eabi-gcc"
+      env: BUILD='Release' AR=arm-none-eabi-ar
+           TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-cross-arm-none-eabi.cmake
+      dist: bionic
+      addons:
+        apt:
+          sources:
+          - sourceline: 'ppa:team-gcc-arm-embedded/ppa'
+          packages:
+          - gcc-arm-embedded
+
 script:
+  - cmake --version
+  - ${CC} --version
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${BUILD} ..
+  - cmake -DCMAKE_BUILD_TYPE=${BUILD} ${TOOLCHAIN} ..
   - cmake --build .
 
 notifications:
   email:
     on_success: never
+    on_failure: never
