@@ -42,7 +42,7 @@ int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
 {
 	uint32_t id;
 
-	if (!j1939_valid_priority(priority)) {
+	if (unlikely(!j1939_valid_priority(priority))) {
 		return -1;
 	}
 
