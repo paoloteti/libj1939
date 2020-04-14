@@ -17,6 +17,7 @@
 #define CONN_MODE_BAM 0x20u
 #define CONN_MODE_ABORT 0xFFu
 
+static const struct j1939_pgn BAM = J1939_INIT_PGN(0x00u, 0xFEu, 0xEC);
 static const struct j1939_pgn TP_CM = J1939_INIT_PGN(0x00u, 0xECu, 0x00u);
 static const struct j1939_pgn TP_DT = J1939_INIT_PGN(0x00u, 0xEBu, 0x00u);
 static const struct j1939_pgn AC = J1939_INIT_PGN(0x00u, 0xEE, 0x00u);
@@ -44,22 +45,52 @@ static int send_tp_dt(const uint8_t src, const uint8_t dst, uint8_t *data,
 	return j1939_send(&TP_DT, J1939_PRIORITY_LOW, src, dst, data, len);
 }
 
-static int send_tp_bam(const uint8_t priority, const uint8_t src,
-		       const uint16_t size, const uint8_t num_packets)
+int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
+		const uint16_t len)
 {
-	uint8_t data[8] = {
+	int ret;
+	uint16_t size = len;
+	uint8_t seqno = 0;
+	uint8_t frame[8];
+	uint8_t num_packets = (len / 7) + (len % 7);
+
+	uint8_t bam[8] = {
 		CONN_MODE_BAM,
-		size & 0x00FF,
-		size >> 8,
+		len & 0x00FF,
+		len >> 8,
 		num_packets,
 		0xff,
-		TP_CM.pdu_specific,
-		TP_CM.pdu_format,
-		TP_CM.data_page,
+		BAM.pdu_specific,
+		BAM.pdu_format,
+		BAM.data_page,
 	};
 
-	return j1939_send(&TP_CM, priority, src, ADDRESS_GLOBAL, data,
-			  ARRAY_SIZE(data));
+	if (unlikely(len > J1939_MAX_DATA_LEN)) {
+		return -1;
+	}
+
+	ret = j1939_send(&TP_CM, priority, src, ADDRESS_GLOBAL, bam,
+			  ARRAY_SIZE(bam));
+	if (ret < 0) {
+		return ret;
+	}
+
+	while (size > 0 && ret >= 0) {
+		frame[0] = seqno;
+
+		if (size >= 7) {
+			memcpy(&frame[1], data, 7);
+			size -= 7;
+		} else {
+			memcpy(&frame[1], data, size);
+			memset(&frame[1 + size], 0xFF, 7 - size);
+			size = 0;
+		}
+
+		ret = j1939_send(&TP_DT, priority, src, ADDRESS_GLOBAL, frame, 8);
+		seqno++;
+	}
+	return ret;
 }
 
 static int send_abort(const uint8_t src, const uint8_t dst,

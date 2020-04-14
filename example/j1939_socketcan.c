@@ -100,6 +100,7 @@ int main(void)
 	const uint8_t src = 0x80;
 	const uint8_t dest = 0x20;
 	struct j1939_pgn pgn = J1939_INIT_PGN(0x0, 0xFE, 0xF6);
+	uint8_t bam_data[18];
 
 	uint8_t data[8] = {
 		J1930_NA_8, /* Particulate Trap Inlet Pressure (SPN 81) */
@@ -136,10 +137,16 @@ int main(void)
 	do {
 		ret = j1939_tp(&pgn, 6, src, dest, data, 8);
 		if (ret < 0) {
-			printf("J1939 send returns with code %d\n", ret);
+			printf("J1939 TP returns with code %d\n", ret);
 		}
 		data[2]++;
 	} while (ntimes-- && ret >= 0);
+
+	memset(bam_data, 0xAA, sizeof(bam_data));
+	ret = send_tp_bam(6, src, bam_data, sizeof(bam_data));
+	if (ret < 0) {
+		printf("J1939 BAM returns with code %d\n", ret);
+	}
 
 	close(cansock);
 	return 0;

@@ -214,4 +214,7 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 
 int j1939_address_claimed(uint8_t src, struct j1939_name *name);
 
+int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
+		const uint16_t len);
+
 #endif /* __J1939_H__ */
