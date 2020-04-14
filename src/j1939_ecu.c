@@ -118,8 +118,15 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 {
 	int ret;
 	uint8_t *block = data;
-	uint16_t num_packets = len / 8u;
-	uint16_t odd_packet = len % 8u;
+	uint16_t num_packets, odd_packet;
+
+	/* single frame, send directly */
+	if (len <= 8) {
+		return j1939_send(pgn, priority, src, dst, data, len);
+	}
+
+	num_packets = len / 8u;
+	odd_packet = len % 8u;
 
 	ret = send_tp_rts(priority, src, dst, len, num_packets);
 	if (unlikely(ret < 0)) {
