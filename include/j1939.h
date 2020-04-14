@@ -187,6 +187,28 @@ int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
 int j1939_receive(struct j1939_pgn *pgn, uint8_t *priority, uint8_t *src,
 		  uint8_t *dst, uint8_t *data, uint32_t *len);
 
+/**
+ * @brief J1939 Transport Protocol (TP)
+ *
+ * J1939 transport protocol breaks up PGs larger than 8 data bytes and up to
+ * 1785 bytes, into multiple packets. The transport protocol defines the rules
+ * for packaging, transmitting, and reassembling the data.
+ *
+ * Messages that have multiple packets are transmitted with a dedicated PGN, and
+ * have the same message ID and similar functionality.
+ * The length of each message in the packet must be 8 bytes or fewer.
+ * The first byte in the data field of a message specifies the sequence of the
+ * message (one to 255) and the next seven bytes contain the original data.
+ * All unused bytes in the data field are set to zero.
+ *
+ * @param pgn PGN to be sent
+ * @param priority PGN priority
+ * @param src source address
+ * @param dest destination address
+ * @param data array of bytes to be sent
+ * @param len data length (in bytes)
+ * @return -1 in case of error, 0 otherwise
+ */
 int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	     const uint8_t dst, uint8_t *data, const uint16_t len);
 
