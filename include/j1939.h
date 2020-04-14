@@ -3,6 +3,8 @@
 #ifndef __J1939_H__
 #define __J1939_H__
 
+#define J1939_MAX_DATA_LEN 1785
+
 #define ADDRESS_GLOBAL 0xFFu
 #define ADDRESS_NULL 0xEFu
 

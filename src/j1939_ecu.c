@@ -120,6 +120,10 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	uint8_t *block = data;
 	uint16_t num_packets, odd_packet;
 
+	if (unlikely(len > J1939_MAX_DATA_LEN)) {
+		return -1;
+	}
+
 	/* single frame, send directly */
 	if (len <= 8) {
 		return j1939_send(pgn, priority, src, dst, data, len);
