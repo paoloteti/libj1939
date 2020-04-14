@@ -83,7 +83,7 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 			size -= 7;
 		} else {
 			memcpy(&frame[1], data, size);
-			memset(&frame[1 + size], 0xFF, 7 - size);
+			memset(&frame[1 + size], J1930_NA_8, 7 - size);
 			size = 0;
 		}
 
