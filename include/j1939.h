@@ -3,6 +3,9 @@
 #ifndef __J1939_H__
 #define __J1939_H__
 
+#define EARGS 1
+#define ECONTINUE 2
+
 #define J1939_MAX_DATA_LEN 1785
 
 #define ADDRESS_GLOBAL 0xFFu

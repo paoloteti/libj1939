@@ -143,7 +143,16 @@ int main(void)
 	} while (ntimes-- && ret >= 0);
 
 	memset(bam_data, 0xAA, sizeof(bam_data));
-	ret = send_tp_bam(6, src, bam_data, sizeof(bam_data));
+
+	/* Async BAM */
+	do {
+		ret = send_tp_bam(6, src, bam_data, sizeof(bam_data));
+		/* BAM packet must be sent with a period of 50ms */
+		if (ret == -ECONTINUE) {
+			usleep(50000);
+		}
+	} while (ret == -ECONTINUE);
+
 	if (ret < 0) {
 		printf("J1939 BAM returns with code %d\n", ret);
 	}

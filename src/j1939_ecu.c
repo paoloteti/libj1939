@@ -48,34 +48,38 @@ static int send_tp_dt(const uint8_t src, const uint8_t dst, uint8_t *data,
 int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 		const uint16_t len)
 {
+	static int step = 0;
 	int ret;
-	uint16_t size = len;
-	uint8_t seqno = 0;
+	static uint16_t size;
+	static uint8_t seqno = 0;
 	uint8_t frame[8];
 	uint8_t num_packets = (len / 7) + (len % 7);
-
 	uint8_t bam[8] = {
 		CONN_MODE_BAM,
 		len & 0x00FF,
 		len >> 8,
 		num_packets,
-		0xff,
+		0xFF,
 		BAM.pdu_specific,
 		BAM.pdu_format,
 		BAM.data_page,
 	};
 
 	if (unlikely(len > J1939_MAX_DATA_LEN)) {
-		return -1;
+		return -EARGS;
 	}
 
-	ret = j1939_send(&TP_CM, priority, src, ADDRESS_GLOBAL, bam,
-			  ARRAY_SIZE(bam));
-	if (ret < 0) {
-		return ret;
+	if (step == 0) {
+		ret = j1939_send(&TP_CM, priority, src, ADDRESS_GLOBAL, bam, 8);
+		if (ret < 0) {
+			return ret;
+		}
+		step++;
+		size = len;
+		return -ECONTINUE;
 	}
 
-	while (size > 0 && ret >= 0) {
+	while (size > 0) {
 		frame[0] = seqno;
 
 		if (size >= 7) {
@@ -88,9 +92,14 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 		}
 
 		ret = j1939_send(&TP_DT, priority, src, ADDRESS_GLOBAL, frame, 8);
+		if (ret < 0) {
+			return ret;
+		}
 		seqno++;
+		step++;
+		return -ECONTINUE;
 	}
-	return ret;
+	return 0;
 }
 
 static int send_abort(const uint8_t src, const uint8_t dst,
