@@ -4,7 +4,12 @@
  * J1939: Electronic Control Unit (ECU) holding one or more
  *        Controller Applications (CAs).
  */
+#if defined(__linux__)
 #include <endian.h>
+#else
+#include <machine/endian.h>
+#define htobe64 __bswap64
+#endif
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
