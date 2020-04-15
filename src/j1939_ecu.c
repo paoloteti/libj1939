@@ -4,10 +4,10 @@
  * J1939: Electronic Control Unit (ECU) holding one or more
  *        Controller Applications (CAs).
  */
+#include <endian.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "bits.h"
 #include "compiler.h"
 #include "j1939.h"
 
@@ -199,26 +199,21 @@ int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
 	return send_tp_eom_ack(src, dst, 8, num_packets + odd_packet);
 }
 
-int j1939_address_claimed(uint8_t src, struct j1939_name *name)
+int j1939_address_claimed(uint8_t src, ecu_name_t name)
 {
 	const uint8_t dest = 0xFE;
-#if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-	uint64_t n;
-	memcpy(&n, name, sizeof(n));
-	n = swap64(n);
+	uint64_t n = htobe64(name.value);
 	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)&n, 8);
-#else
-	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)name, 8);
-#endif
 }
 
-int j1939_cannot_claim_address(struct j1939_name *name)
+int j1939_cannot_claim_address(ecu_name_t name)
 {
+	uint64_t n = htobe64(name.value);
 	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, ADDRESS_NOT_CLAIMED,
-			  ADDRESS_GLOBAL, (uint8_t *)&name, 8);
+			  ADDRESS_GLOBAL, (uint8_t *)&n, 8);
 }
 
-int j1939_address_claim(const uint8_t src, struct j1939_name *name)
+int j1939_address_claim(const uint8_t src, ecu_name_t name)
 {
 	int ret;
 
@@ -229,6 +224,7 @@ int j1939_address_claim(const uint8_t src, struct j1939_name *name)
 		return ret;
 	}
 
+	uint64_t n = htobe64(name.value);
 	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
-			  (uint8_t *)name, 8);
+			  (uint8_t *)&n, 8);
 }

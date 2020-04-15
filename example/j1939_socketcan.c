@@ -113,17 +113,17 @@ int main(void)
 		J1930_NA_8, /* Coolant Filter Differ. Pressure 112) */
 	};
 
-	struct j1939_name name = {
-		.arbitrary_address_capable = J1939_NO_ADDRESS_CAPABLE,
-		.industry_group = J1939_INDUSTRY_GROUP_INDUSTRIAL,
-		.vehicle_system_instance = 1,
-		.vehicle_system = 1,
-		.function = 1,
-		.reserved = 0,
-		.function_instance = 1,
-		.ecu_instance = 1,
-		.manufacturer_code = 666,
-		.identity_number = 1234567,
+	ecu_name_t name = {
+		.fields.arbitrary_address_capable = J1939_NO_ADDRESS_CAPABLE,
+		.fields.industry_group = J1939_INDUSTRY_GROUP_INDUSTRIAL,
+		.fields.vehicle_system_instance = 1,
+		.fields.vehicle_system = 1,
+		.fields.function = 1,
+		.fields.reserved = 0,
+		.fields.function_instance = 1,
+		.fields.ecu_instance = 1,
+		.fields.manufacturer_code = 1,
+		.fields.identity_number = 1,
 	};
 
 	cansock = connect_canbus("vcan0");
@@ -132,7 +132,12 @@ int main(void)
 		return 1;
 	}
 
-	j1939_address_claimed(src, &name);
+	ret = j1939_address_claim(src, name);
+	if (ret < 0) {
+		printf("J1939 AC returns with code %d\n", ret);
+	}
+
+	j1939_address_claimed(src, name);
 
 	do {
 		ret = j1939_tp(&pgn, 6, src, dest, data, 8);
