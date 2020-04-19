@@ -53,15 +53,7 @@ static int connect_canbus(const char *can_ifname)
 
 int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters)
 {
-	struct j1939_filter filt[num_filters];
-
-	for (int i = 0; i < num_filters; i++) {
-		filt[i].pgn = j1939_pgn_to_id(&filter[i].pgn);
-		filt[i].pgn_mask = j1939_pgn_to_id(&filter[i].pgn_mask);
-	}
-
-	setsockopt(cansock, SOL_CAN_J1939, SO_J1939_FILTER, &filt,
-		   sizeof(filt));
+	return 0;
 }
 
 int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
@@ -99,7 +91,7 @@ int main(void)
 	int ret, ntimes = 5;
 	const uint8_t src = 0x80;
 	const uint8_t dest = 0x20;
-	struct j1939_pgn pgn = J1939_INIT_PGN(0x0, 0xFE, 0xF6);
+	j1939_pgn_t pgn = J1939_INIT_PGN(0x0, 0xFE, 0xF6);
 	uint8_t bam_data[18];
 
 	uint8_t data[8] = {
@@ -140,7 +132,7 @@ int main(void)
 	j1939_address_claimed(src, name);
 
 	do {
-		ret = j1939_tp(&pgn, 6, src, dest, data, 8);
+		ret = j1939_tp(pgn, 6, src, dest, data, 8);
 		if (ret < 0) {
 			printf("J1939 TP returns with code %d\n", ret);
 		}

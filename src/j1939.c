@@ -35,10 +35,10 @@
 #include <string.h>
 #include "j1939.h"
 #include "compiler.h"
+#include "pgn.h"
 
-int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
-	       const uint8_t src, const uint8_t dst, uint8_t *data,
-	       const uint32_t len)
+int j1939_send(const j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
+	       const uint8_t dst, uint8_t *data, const uint32_t len)
 {
 	uint32_t id;
 
@@ -46,8 +46,8 @@ int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
 		return -1;
 	}
 
-	id = ((uint32_t)priority << 26) |
-	     ((j1939_pgn_to_id(pgn) & 0x3FFFF) << 8) | (uint32_t)src;
+	id = ((uint32_t)priority << 26) | ((pgn & PGN_MASK) << 8) |
+	     (uint32_t)src;
 
 	/* If PGN is peer-to-peer, add destination address to the ID */
 	if (j1939_pdu_is_p2p(pgn)) {
@@ -57,7 +57,7 @@ int j1939_send(const struct j1939_pgn *pgn, const uint8_t priority,
 	return j1939_cansend(id, data, len);
 }
 
-int j1939_receive(struct j1939_pgn *pgn, uint8_t *priority, uint8_t *src,
+int j1939_receive(j1939_pgn_t *pgn, uint8_t *priority, uint8_t *src,
 		  uint8_t *dst, uint8_t *data, uint32_t *len)
 {
 	uint32_t id;
@@ -73,9 +73,9 @@ int j1939_receive(struct j1939_pgn *pgn, uint8_t *priority, uint8_t *src,
 		*len = received;
 		*priority = (id & 0x1C000000u) >> 26;
 		*src = id & 0x000000FFu;
-		j1939_pgn_from_id(pgn, id);
+		*pgn = id & PGN_MASK;
 
-		if (j1939_pdu_is_p2p(pgn)) {
+		if (j1939_pdu_is_p2p(*pgn)) {
 			*dst = id & 0x000000FFu;
 		}
 	}

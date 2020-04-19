@@ -10,6 +10,7 @@
 #include "compat.h"
 #include "compiler.h"
 #include "j1939.h"
+#include "pgn.h"
 
 #define CONN_MODE_RTS 0x10u
 #define CONN_MODE_CTS 0x11u
@@ -17,13 +18,13 @@
 #define CONN_MODE_BAM 0x20u
 #define CONN_MODE_ABORT 0xFFu
 
-static const struct j1939_pgn BAM = J1939_INIT_PGN(0x00u, 0xFEu, 0xEC);
-static const struct j1939_pgn TP_CM = J1939_INIT_PGN(0x00u, 0xECu, 0x00u);
-static const struct j1939_pgn TP_DT = J1939_INIT_PGN(0x00u, 0xEBu, 0x00u);
+static const j1939_pgn_t BAM = J1939_INIT_PGN(0x00u, 0xFEu, 0xEC);
+static const j1939_pgn_t TP_CM = J1939_INIT_PGN(0x00u, 0xECu, 0x00u);
+static const j1939_pgn_t TP_DT = J1939_INIT_PGN(0x00u, 0xEBu, 0x00u);
 /** @brief Address Claimed */
-static const struct j1939_pgn AC = J1939_INIT_PGN(0x00u, 0xEE, 0x00u);
+static const j1939_pgn_t AC = J1939_INIT_PGN(0x00u, 0xEE, 0x00u);
 /** @brief Request for Address Claimed */
-static const struct j1939_pgn RAC = J1939_INIT_PGN(0x00u, 0xEA, 0x00u);
+static const j1939_pgn_t RAC = J1939_INIT_PGN(0x00u, 0xEA, 0x00u);
 
 static int send_tp_rts(uint8_t priority, uint8_t src, uint8_t dst,
 		       uint16_t size, uint8_t num_packets)
@@ -34,18 +35,18 @@ static int send_tp_rts(uint8_t priority, uint8_t src, uint8_t dst,
 		size >> 8,
 		num_packets,
 		0xFF,
-		TP_CM.pdu_specific,
-		TP_CM.pdu_format,
-		TP_CM.data_page,
+		PGN_SPECIFIC(TP_CM),
+		PGN_FORMAT(TP_CM),
+		PGN_DATA_PAGE(TP_CM),
 	};
 
-	return j1939_send(&TP_CM, priority, src, dst, data, 8);
+	return j1939_send(TP_CM, priority, src, dst, data, 8);
 }
 
 static int send_tp_dt(const uint8_t src, const uint8_t dst, uint8_t *data,
 		      const uint32_t len)
 {
-	return j1939_send(&TP_DT, J1939_PRIORITY_LOW, src, dst, data, len);
+	return j1939_send(TP_DT, J1939_PRIORITY_LOW, src, dst, data, len);
 }
 
 int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
@@ -63,9 +64,9 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 		len >> 8,
 		num_packets,
 		0xFF,
-		BAM.pdu_specific,
-		BAM.pdu_format,
-		BAM.data_page,
+		PGN_SPECIFIC(BAM),
+		PGN_FORMAT(BAM),
+		PGN_DATA_PAGE(BAM),
 	};
 
 	if (unlikely(len > J1939_MAX_DATA_LEN)) {
@@ -73,7 +74,7 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 	}
 
 	if (step == 0) {
-		ret = j1939_send(&TP_CM, priority, src, ADDRESS_GLOBAL, bam, 8);
+		ret = j1939_send(TP_CM, priority, src, ADDRESS_GLOBAL, bam, 8);
 		if (ret < 0) {
 			return ret;
 		}
@@ -94,7 +95,8 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 			size = 0;
 		}
 
-		ret = j1939_send(&TP_DT, priority, src, ADDRESS_GLOBAL, frame, 8);
+		ret = j1939_send(TP_DT, priority, src, ADDRESS_GLOBAL, frame,
+				 8);
 		if (ret < 0) {
 			return ret;
 		}
@@ -114,11 +116,11 @@ static int send_abort(const uint8_t src, const uint8_t dst,
 		0xFF,
 		0xFF,
 		0xFF,
-		TP_CM.pdu_specific,
-		TP_CM.pdu_format,
-		TP_CM.data_page,
+		PGN_SPECIFIC(TP_CM),
+		PGN_FORMAT(TP_CM),
+		PGN_DATA_PAGE(TP_CM),
 	};
-	return j1939_send(&TP_DT, J1939_PRIORITY_LOW, src, dst, data,
+	return j1939_send(TP_DT, J1939_PRIORITY_LOW, src, dst, data,
 			  ARRAY_SIZE(data));
 }
 
@@ -131,11 +133,11 @@ static int send_tp_cts(const uint8_t src, const uint8_t dst,
 		next_packet,
 		0xFF,
 		0xFF,
-		TP_CM.pdu_specific,
-		TP_CM.pdu_format,
-		TP_CM.data_page,
+		PGN_SPECIFIC(TP_CM),
+		PGN_FORMAT(TP_CM),
+		PGN_DATA_PAGE(TP_CM),
 	};
-	return j1939_send(&TP_DT, J1939_PRIORITY_LOW, src, dst, data,
+	return j1939_send(TP_DT, J1939_PRIORITY_LOW, src, dst, data,
 			  ARRAY_SIZE(data));
 }
 
@@ -148,15 +150,15 @@ static int send_tp_eom_ack(const uint8_t src, const uint8_t dst,
 		(size >> 8),
 		num_packets,
 		0xFF,
-		TP_CM.pdu_specific,
-		TP_CM.pdu_format,
-		TP_CM.data_page,
+		PGN_SPECIFIC(TP_CM),
+		PGN_FORMAT(TP_CM),
+		PGN_DATA_PAGE(TP_CM),
 	};
-	return j1939_send(&TP_CM, J1939_PRIORITY_LOW, src, dst, data,
+	return j1939_send(TP_CM, J1939_PRIORITY_LOW, src, dst, data,
 			  ARRAY_SIZE(data));
 }
 
-int j1939_tp(struct j1939_pgn *pgn, const uint8_t priority, const uint8_t src,
+int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 	     const uint8_t dst, uint8_t *data, const uint16_t len)
 {
 	int ret;
@@ -203,13 +205,13 @@ int j1939_address_claimed(uint8_t src, ecu_name_t name)
 {
 	const uint8_t dest = 0xFE;
 	uint64_t n = htobe64(name.value);
-	return j1939_send(&AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)&n, 8);
+	return j1939_send(AC, J1939_PRIORITY_HIGH, src, dest, (uint8_t *)&n, 8);
 }
 
 int j1939_cannot_claim_address(ecu_name_t name)
 {
 	uint64_t n = htobe64(name.value);
-	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, ADDRESS_NOT_CLAIMED,
+	return j1939_send(AC, J1939_PRIORITY_DEFAULT, ADDRESS_NOT_CLAIMED,
 			  ADDRESS_GLOBAL, (uint8_t *)&n, 8);
 }
 
@@ -218,13 +220,13 @@ int j1939_address_claim(const uint8_t src, ecu_name_t name)
 	int ret;
 
 	/* Send Request for Address Claimed */
-	ret = j1939_send(&RAC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
+	ret = j1939_send(RAC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
 			 (uint8_t *)&AC, 3);
 	if (unlikely(ret < 0)) {
 		return ret;
 	}
 
 	uint64_t n = htobe64(name.value);
-	return j1939_send(&AC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
+	return j1939_send(AC, J1939_PRIORITY_DEFAULT, src, ADDRESS_GLOBAL,
 			  (uint8_t *)&n, 8);
 }
