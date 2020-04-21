@@ -163,7 +163,7 @@ int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 {
 	int ret;
 	uint8_t *block = data;
-	uint16_t num_packets, odd_packet;
+	uint8_t num_packets, odd_packet;
 
 	if (unlikely(len > J1939_MAX_DATA_LEN)) {
 		return -1;
