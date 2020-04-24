@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __PGN_H__
 #define __PGN_H__
