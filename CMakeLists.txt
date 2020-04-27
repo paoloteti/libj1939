@@ -2,13 +2,12 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 set(CMAKE_POLICY_DEFAULT_CMP0054 NEW)
 
-SET(CMAKE_C_COMPILER_WORKS 1)
-SET(CMAKE_CXX_COMPILER_WORKS 1)
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
+set(CMAKE_C_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
-
-SET(CMAKE_C_COMPILER_WORKS 1)
-SET(CMAKE_CXX_COMPILER_WORKS 1)
 
 set(TARGET j1939)
 project(${TARGET} VERSION 0.0.1)
@@ -20,10 +19,14 @@ include(DefineCompilerFlags)
 include(DefinePlatformDefaults)
 include(CompilerChecks.cmake)
 
+set(PGN_POOL_SIZE 16 CACHE STRING "PGN Pool size")
+
+add_definitions(-D_GNU_SOURCE=1)
+add_definitions(-DTP_TASK_YIELD=1)
+
 # config.h checks
 include(ConfigureChecks.cmake)
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-
 
 set(J1939_DIR ${PROJECT_SOURCE_DIR}/src)
 set(J1939_INC_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -33,6 +36,8 @@ set(J1939_EXAMPLE_DIR ${PROJECT_SOURCE_DIR}/example)
 set(J1939_SRC
     ${J1939_DIR}/j1939.c
     ${J1939_DIR}/j1939_ecu.c
+    ${J1939_DIR}/pgn_pool.c
+    ${J1939_DIR}/time.c
 )
 
 include_directories(
@@ -43,8 +48,25 @@ include_directories(
 add_library(${TARGET} STATIC ${J1939_SRC})
 
 if(LIBJ1939_BUILD_EXAMPLE AND UNIX)
-    add_executable(j1939_socketcan ${J1939_EXAMPLE_DIR}/j1939_socketcan.c)
-    target_link_libraries(j1939_socketcan  ${TARGET})
+    set(EXAMPLE_COMMON ${J1939_EXAMPLE_DIR}/linux_socketcan.c)
+    
+    add_executable(j1939_socketcan
+        ${J1939_EXAMPLE_DIR}/j1939_socketcan.c
+        ${EXAMPLE_COMMON}
+    )
+    target_link_libraries(j1939_socketcan ${TARGET} rt)
+
+    add_executable(j1939_tp_client
+        ${J1939_EXAMPLE_DIR}/j1939_tp_client.c
+        ${EXAMPLE_COMMON}
+    )
+    target_link_libraries(j1939_tp_client ${TARGET} rt pthread)
+
+    add_executable(j1939_tp_server
+        ${J1939_EXAMPLE_DIR}/j1939_tp_server.c
+        ${EXAMPLE_COMMON}
+    )
+    target_link_libraries(j1939_tp_server ${TARGET} rt pthread)
 endif()
 
 target_compile_options(${TARGET}

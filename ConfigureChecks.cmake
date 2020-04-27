@@ -16,6 +16,8 @@ set(SYSCONFDIR ${SYSCONF_INSTALL_DIR})
 set(BINARYDIR ${CMAKE_BINARY_DIR})
 set(SOURCEDIR ${CMAKE_SOURCE_DIR})
 
+set(PGN_POOL_SIZE ${PGN_POOL_SIZE})
+
 function(COMPILER_DUMPVERSION _OUTPUT_VERSION)
     # Remove whitespaces from the argument.
     # This is needed for CC="ccache gcc" cmake ..

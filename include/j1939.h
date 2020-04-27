@@ -3,10 +3,12 @@
 #ifndef __J1939_H__
 #define __J1939_H__
 
-#define EARGS 1
-#define ECONTINUE 2
+#define EARGS 		1
+#define ETIMEOUT	2
+#define EBUSY 		3
+#define EINCOMPLETE	4
 
-#define J1939_MAX_DATA_LEN 1785
+#define J1939_MAX_DATA_LEN 1785 /*<! Maximum data stream length */
 
 #define ADDRESS_GLOBAL 0xFFu
 #define ADDRESS_NOT_CLAIMED 0xFEu
@@ -16,10 +18,11 @@
 #define J1939_PRIORITY_DEFAULT 0x6u
 #define J1939_PRIORITY_LOW 0x7u
 
-#define REASON_BUSY 0x01u /*<! Node is busy */
-#define REASON_NO_RESOURCE 0x02u /*<! Lacking the necessary resources */
-#define REASON_TIMEOUT 0x03u /*<! A timeout occurred */
-#define REASON_CTS_WHILE_DT 0x04u /*<! CTS received when during transfer */
+#define J1939_EBUSY 		100
+#define J1939_EWRONG_DATA_LEN	101
+#define J1939_ENO_RESOURCE	102
+#define J1939_EIO		103
+#define J1939_EINCOMPLETE	104
 
 /** @brief indicates that the parameter is "not available" */
 #define J1930_NOT_AVAILABLE_8 0xFFu
@@ -129,6 +132,8 @@ struct j1939_pgn_filter {
 	uint8_t addr_mask;
 };
 
+#define SEND_PERIOD 50 /* <! Send period [msec] */
+
 /** @brief Timeouts ([msec]) according to SAE J1939/21 */
 enum j1939_timeouts {
 	/* Response Time */
@@ -154,6 +159,8 @@ enum j1939_timeouts {
 extern int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len);
 extern int j1939_canrcv(uint32_t *id, uint8_t *data);
 extern int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters);
+extern uint32_t j1939_get_time(void);
+
 
 bool static inline j1939_valid_priority(const uint8_t p)
 {
@@ -197,7 +204,21 @@ int j1939_address_claim(const uint8_t src, ecu_name_t name);
 
 int j1939_cannot_claim_address(ecu_name_t name);
 
+int j1939_send_tp_cts(const uint8_t src, const uint8_t dst,
+		      const uint8_t num_packets, const uint8_t next_packet);
+
 int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 		const uint16_t len);
+
+typedef int (*pgn_callback_t)(j1939_pgn_t pgn, uint8_t priority,
+			      uint8_t src, uint8_t dest,
+			      uint8_t *data, uint8_t len);
+
+
+typedef void (*pgn_error_cb_t)(j1939_pgn_t pgn, uint8_t priority,
+			      uint8_t src, uint8_t dest, int err);
+
+int j1939_setup(pgn_callback_t rcv_tp, pgn_error_cb_t err_cb);
+int j1939_dispose(void);
 
 #endif /* __J1939_H__ */

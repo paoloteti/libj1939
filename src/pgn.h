@@ -8,6 +8,17 @@
 #define PGN_DATA_PAGE(_x) (((_x) >> 17) & 0x1)
 
 #define PGN_MASK 0x3FFFFu
+#define PGN_FROM(_f, _s, _dp) \
+	(((_dp) & 0x1) << 17) | (((_f) & 0xff) << 8) | ((_s) & 0xff)
+
+
+#define BAM 	0x00FEECu
+#define TP_CM 	0x00EC00u
+#define TP_DT 	0x00EB00u
+/** @brief Address Claimed */
+#define AC	0x00EE00u
+/** @brief Request for Address Claimed */
+#define RAC	0x00EA00u
 
 /** @brief Check if PDU format < 240 (peer-to-peer) */
 static inline bool j1939_pdu_is_p2p(const j1939_pgn_t pgn)

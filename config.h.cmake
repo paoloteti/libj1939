@@ -149,3 +149,5 @@
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #cmakedefine WORDS_BIGENDIAN 1
+
+#cmakedefine PGN_POOL_SIZE 16

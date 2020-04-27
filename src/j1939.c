@@ -73,11 +73,18 @@ int j1939_receive(j1939_pgn_t *pgn, uint8_t *priority, uint8_t *src,
 		*len = received;
 		*priority = (id & 0x1C000000u) >> 26;
 		*src = id & 0x000000FFu;
-		*pgn = id & PGN_MASK;
 
+		/*
+		 * if PGN is peer-to-peer, remove destination from
+		 * PGN itself and calculate destination address
+		 */
 		if (j1939_pdu_is_p2p(*pgn)) {
-			*dst = id & 0x000000FFu;
+			*pgn = id & 0xFFFF00FFu;
+			*dst = (id >> 8) & 0x000000FFu;
+		} else {
+			*dst = ADDRESS_NULL;
 		}
+		*pgn = (*pgn >> 8) & PGN_MASK;
 	}
 
 	return received;
