@@ -35,7 +35,7 @@ extern uint32_t j1939_get_time(void);
 
 static int stop;
 
-void *pgn_rx(void *x)
+static void *pgn_rx(void *x)
 {
 	while (!stop) {
 		pgn_pool_receive();
@@ -68,7 +68,7 @@ static void error_handler(j1939_pgn_t pgn, uint8_t priority,
 int main(void)
 {
 	pthread_t tid;
-	int ret, ntimes = 5;
+	int ret;
 	const uint8_t src = 0x80;
 	const uint8_t dest = 0x20;
 	uint8_t data[32];

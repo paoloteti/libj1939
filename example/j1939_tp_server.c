@@ -27,7 +27,7 @@ extern uint32_t j1939_get_time(void);
 static int stop;
 static int received;
 
-void *pgn_rx(void *x)
+static void *pgn_rx(void *x)
 {
 	while (!stop) {
 		pgn_pool_receive();
@@ -62,7 +62,6 @@ static void error_handler(j1939_pgn_t pgn, uint8_t priority,
 int main(void)
 {
 	pthread_t tid;
-	int ret;
 
 	if (connect_canbus("vcan0") < 0) {
 		perror("Opening CANbus vcan0");

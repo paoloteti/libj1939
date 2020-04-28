@@ -1,7 +1,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "time.h"
+#include "j1939_time.h"
 #include "j1939.h"
 
 bool elapsed(const uint32_t t, const uint32_t timeout)

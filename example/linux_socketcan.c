@@ -9,7 +9,6 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
@@ -18,6 +17,10 @@
 extern void j1939_task_yield(void);
 
 static int cansock;
+
+int connect_canbus(const char *can_ifname);
+int disconnect_canbus(void);
+
 
 int connect_canbus(const char *can_ifname)
 {
@@ -47,7 +50,7 @@ int connect_canbus(const char *can_ifname)
 
 int disconnect_canbus(void)
 {
-	close(cansock);
+	return close(cansock);
 }
 
 int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters)

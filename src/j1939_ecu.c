@@ -12,7 +12,7 @@
 #include "j1939.h"
 #include "pgn.h"
 #include "pgn_pool.h"
-#include "time.h"
+#include "j1939_time.h"
 #include <stdio.h>
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))

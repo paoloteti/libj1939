@@ -45,6 +45,17 @@ include_directories(
 
 add_library(${TARGET} STATIC ${J1939_SRC})
 
+add_definitions(-DHAVE_CONFIG_H)
+
+target_compile_options(${TARGET}
+                       PRIVATE
+                       ${DEFAULT_C_COMPILE_FLAGS})
+set_property(TARGET
+             ${TARGET}
+             PROPERTY
+             LINK_FLAGS
+             "${DEFAULT_LINK_FLAGS}")
+
 if(LIBJ1939_BUILD_EXAMPLE AND UNIX)
     add_definitions(-DTP_TASK_YIELD=1)
     add_definitions(-D_GNU_SOURCE)
@@ -55,30 +66,26 @@ if(LIBJ1939_BUILD_EXAMPLE AND UNIX)
         ${J1939_EXAMPLE_DIR}/j1939_socketcan.c
         ${EXAMPLE_COMMON}
     )
+    set_property(TARGET j1939_socketcan PROPERTY LINK_FLAGS "${DEFAULT_LINK_FLAGS}")
     target_link_libraries(j1939_socketcan ${TARGET} rt pthread)
+    target_compile_options(j1939_socketcan PRIVATE ${DEFAULT_C_COMPILE_FLAGS})
 
     add_executable(j1939_tp_client
         ${J1939_EXAMPLE_DIR}/j1939_tp_client.c
         ${EXAMPLE_COMMON}
     )
+    set_property(TARGET j1939_tp_client PROPERTY LINK_FLAGS "${DEFAULT_LINK_FLAGS}")
     target_link_libraries(j1939_tp_client ${TARGET} rt pthread)
+    target_compile_options(j1939_tp_client PRIVATE ${DEFAULT_C_COMPILE_FLAGS})
 
     add_executable(j1939_tp_server
         ${J1939_EXAMPLE_DIR}/j1939_tp_server.c
         ${EXAMPLE_COMMON}
     )
+    set_property(TARGET j1939_tp_server PROPERTY LINK_FLAGS "${DEFAULT_LINK_FLAGS}")
     target_link_libraries(j1939_tp_server ${TARGET} rt pthread)
+    target_compile_options(j1939_tp_server PRIVATE ${DEFAULT_C_COMPILE_FLAGS})
 endif()
-
-target_compile_options(${TARGET}
-                       PRIVATE
-                       ${DEFAULT_C_COMPILE_FLAGS}
-                       -DHAVE_CONFIG_H)
-set_property(TARGET
-             ${TARGET}
-             PROPERTY
-             LINK_FLAGS
-             "${DEFAULT_LINK_FLAGS}")
 
 #
 # Doxygen
