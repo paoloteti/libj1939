@@ -2,33 +2,38 @@ language: c
 os: linux
 dist: bionic
 
+git:
+  depth: 16
+  quiet: true
+
 jobs:
   include:
     - os: linux
       compiler: "gcc-7"
-      env: BUILD='Debug' CC=gcc-7 CXX=g++-7
+      env: BUILD='Debug' CC=gcc-7 CXX=g++-7 OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
-      addons: *gcc7
+      addons: *gcc7 linux-headers-generic
 
     - os: linux
       compiler: "gcc-7"
-      env: BUILD='Release' CC=gcc-7 CXX=g++-7
+      env: BUILD='Release' CC=gcc-7 CXX=g++-7 OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
-      addons: *gcc7
+      addons: *gcc7 linux-headers-generic
 
     - os: linux
       arch: arm64
       compiler: "gcc"
-      env: BUILD='Release'
+      env: BUILD='Release' OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
+      addons: *gcc7 linux-headers-generic
 
-allow_failures:
+  allow_failures:
     - os: linux
       compiler: "arm-none-eabi-gcc"
       env: BUILD='Release' AR=arm-none-eabi-ar
            TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-cross-arm-none-eabi.cmake
       dist: bionic
-      addons:
+      addons: linux-headers-generic
         apt:
           sources:
           - sourceline: 'ppa:team-gcc-arm-embedded/ppa'
@@ -40,7 +45,7 @@ script:
   - ${CC} --version
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${BUILD} ${TOOLCHAIN} ..
+  - cmake -DCMAKE_BUILD_TYPE=${BUILD} ${TOOLCHAIN} ${OPT} ..
   - cmake --build .
 
 notifications:
