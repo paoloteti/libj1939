@@ -11,9 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <pthread.h>
-#include <bits/time.h>
 #include <unistd.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -22,24 +20,12 @@
 #include "j1939.h"
 
 extern int pgn_pool_receive(void);
-extern void j1939_task_yield(void);
 extern int connect_canbus(const char *can_ifname);
 extern void disconnect_canbus(void);
+extern uint32_t j1939_get_time(void);
 
 static int stop;
 static int received;
-
-uint32_t j1939_get_time(void)
-{
-	struct timespec tv;
-	clock_gettime(CLOCK_MONOTONIC, &tv);
-	return tv.tv_sec * 1000 + tv.tv_nsec / 1000000;
-}
-
-void j1939_task_yield(void)
-{
-	pthread_yield();
-}
 
 void *pgn_rx(void *x)
 {

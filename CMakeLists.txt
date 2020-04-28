@@ -5,7 +5,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0054 NEW)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 
@@ -21,8 +21,6 @@ include(CompilerChecks.cmake)
 
 set(PGN_POOL_SIZE 16 CACHE STRING "PGN Pool size")
 
-add_definitions(-D_GNU_SOURCE=1)
-add_definitions(-DTP_TASK_YIELD=1)
 
 # config.h checks
 include(ConfigureChecks.cmake)
@@ -48,13 +46,16 @@ include_directories(
 add_library(${TARGET} STATIC ${J1939_SRC})
 
 if(LIBJ1939_BUILD_EXAMPLE AND UNIX)
+    add_definitions(-DTP_TASK_YIELD=1)
+    add_definitions(-D_GNU_SOURCE)
+
     set(EXAMPLE_COMMON ${J1939_EXAMPLE_DIR}/linux_socketcan.c)
-    
+
     add_executable(j1939_socketcan
         ${J1939_EXAMPLE_DIR}/j1939_socketcan.c
         ${EXAMPLE_COMMON}
     )
-    target_link_libraries(j1939_socketcan ${TARGET} rt)
+    target_link_libraries(j1939_socketcan ${TARGET} rt pthread)
 
     add_executable(j1939_tp_client
         ${J1939_EXAMPLE_DIR}/j1939_tp_client.c

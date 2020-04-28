@@ -14,5 +14,6 @@
 int pgn_register(const uint32_t pgn, uint8_t code, pgn_callback_t cb);
 int pgn_deregister(const uint32_t pgn, uint8_t code);
 void pgn_deregister_all(void);
+int pgn_pool_receive(void);
 
 #endif /* __PGN_POOL_H__ */

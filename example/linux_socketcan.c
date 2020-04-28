@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
+#include <bits/time.h>
+#include <pthread.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -12,6 +15,8 @@
 #include <linux/can/j1939.h>
 
 #include "j1939.h"
+
+extern void j1939_task_yield(void);
 
 static int cansock;
 
@@ -80,4 +85,16 @@ int j1939_canrcv(uint32_t *id, uint8_t *data)
 	memcpy(data, frame.data, frame.can_dlc);
 	*id = frame.can_id;
 	return frame.can_dlc;
+}
+
+uint32_t j1939_get_time(void)
+{
+	struct timespec tv;
+	clock_gettime(CLOCK_MONOTONIC, &tv);
+	return tv.tv_sec * 1000 + tv.tv_nsec / 1000;
+}
+
+void j1939_task_yield(void)
+{
+	pthread_yield();
 }

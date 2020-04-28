@@ -12,9 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include <bits/time.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -23,13 +20,6 @@
 
 extern int connect_canbus(const char *can_ifname);
 extern void disconnect_canbus(void);
-
-uint32_t j1939_get_time(void)
-{
-	struct timespec tv;
-	clock_gettime(CLOCK_MONOTONIC, &tv);
-	return tv.tv_sec * 1000 + tv.tv_nsec / 1000;
-}
 
 int main(void)
 {

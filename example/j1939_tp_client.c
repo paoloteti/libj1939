@@ -31,20 +31,9 @@ extern int pgn_pool_receive(void);
 extern void j1939_task_yield(void);
 extern int connect_canbus(const char *can_ifname);
 extern void disconnect_canbus(void);
+extern uint32_t j1939_get_time(void);
 
 static int stop;
-
-uint32_t j1939_get_time(void)
-{
-	struct timespec tv;
-	clock_gettime(CLOCK_MONOTONIC, &tv);
-	return tv.tv_sec * 1000 + tv.tv_nsec / 1000000;
-}
-
-void j1939_task_yield(void)
-{
-	pthread_yield();
-}
 
 void *pgn_rx(void *x)
 {
