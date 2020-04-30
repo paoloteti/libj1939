@@ -34,6 +34,7 @@ set(J1939_EXAMPLE_DIR ${PROJECT_SOURCE_DIR}/example)
 set(J1939_SRC
     ${J1939_DIR}/j1939.c
     ${J1939_DIR}/j1939_ecu.c
+    ${J1939_DIR}/hasht.c
     ${J1939_DIR}/pgn_pool.c
     ${J1939_DIR}/time.c
 )
