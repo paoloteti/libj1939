@@ -63,6 +63,10 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine HAVE_UNISTD_H 1
 
+/* Define to 1 if you have the <stdatomic.h> header file. */
+#cmakedefine HAVE_STDATOMIC_H 1
+
+
 /**************************** STRUCTS ****************************/
 
 #cmakedefine HAVE_STRUCT_TIMESPEC 1
@@ -151,3 +155,6 @@
 #cmakedefine WORDS_BIGENDIAN 1
 
 #cmakedefine PGN_POOL_SIZE 16
+
+/* Max number of active session (i.e different source address) */
+#cmakedefine MAX_J1939_SESSIONS 4

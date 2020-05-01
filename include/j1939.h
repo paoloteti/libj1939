@@ -3,11 +3,6 @@
 #ifndef __J1939_H__
 #define __J1939_H__
 
-#define EARGS 		1
-#define ETIMEOUT	2
-#define EBUSY 		3
-#define EINCOMPLETE	4
-
 #define J1939_MAX_DATA_LEN 1785 /*<! Maximum data stream length */
 
 #define ADDRESS_GLOBAL 0xFFu
@@ -18,11 +13,13 @@
 #define J1939_PRIORITY_DEFAULT 0x6u
 #define J1939_PRIORITY_LOW 0x7u
 
-#define J1939_EBUSY 		100
-#define J1939_EWRONG_DATA_LEN	101
-#define J1939_ENO_RESOURCE	102
-#define J1939_EIO		103
-#define J1939_EINCOMPLETE	104
+#define J1939_EARGS 		100
+#define J1939_ETIMEOUT		101
+#define J1939_EBUSY 		102
+#define J1939_EINCOMPLETE	103
+#define J1939_EWRONG_DATA_LEN	104
+#define J1939_ENO_RESOURCE	105
+#define J1939_EIO		106
 
 /** @brief indicates that the parameter is "not available" */
 #define J1930_NOT_AVAILABLE_8 0xFFu
@@ -128,6 +125,7 @@ typedef uint32_t j1939_pgn_t;
 struct j1939_pgn_filter {
 	j1939_pgn_t pgn;
 	j1939_pgn_t pgn_mask;
+	uint8_t priority;
 	uint8_t addr;
 	uint8_t addr_mask;
 };
@@ -166,6 +164,9 @@ bool static inline j1939_valid_priority(const uint8_t p)
 {
 	return p <= J1939_PRIORITY_LOW;
 }
+
+uint32_t j1939_pgn2id(const j1939_pgn_t pgn, const uint8_t priority,
+		      const uint8_t src);
 
 int j1939_send(const j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 	       const uint8_t dst, uint8_t *data, const uint32_t len);

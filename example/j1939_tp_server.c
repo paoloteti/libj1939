@@ -24,8 +24,7 @@ extern int connect_canbus(const char *can_ifname);
 extern void disconnect_canbus(void);
 extern uint32_t j1939_get_time(void);
 
-static int stop;
-static int received;
+static int stop = 0;
 
 static void *pgn_rx(void *x)
 {
@@ -38,25 +37,24 @@ static void *pgn_rx(void *x)
 static void dump_payload(uint8_t *data, const uint8_t len)
 {
 	for (uint8_t i = 0; i < len; i++) {
-		printf("%x ", data[i]);
+		printf("%02x ", data[i]);
 	}
 	printf("\n");
 }
 
-static int rcv_tp_dt(j1939_pgn_t pgn, uint8_t priority,
-		     uint8_t src, uint8_t dest,
-		      uint8_t *data, uint8_t len)
+static int rcv_tp_dt(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
+		     uint8_t dest, uint8_t *data, uint8_t len)
 {
+	printf("[%02x %02x]: ", src, dest);
 	dump_payload(data, len);
-	received++;
-	stop = (received == 5);
 	return 0;
 }
 
-static void error_handler(j1939_pgn_t pgn, uint8_t priority,
-		     	  uint8_t src, uint8_t dest, int err)
+static void error_handler(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
+			  uint8_t dest, int err)
 {
-	printf("Error: %d\n", err);
+	printf("[%02x %02x] ERROR: %d\n", src, dest, err);
+	stop = 1;
 }
 
 int main(void)
@@ -70,7 +68,6 @@ int main(void)
 
 	j1939_setup(rcv_tp_dt, error_handler);
 
-	stop = 0;
 	pthread_create(&tid, NULL, pgn_rx, NULL);
 
 	pthread_join(tid, NULL);

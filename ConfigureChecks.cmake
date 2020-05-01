@@ -17,6 +17,7 @@ set(BINARYDIR ${CMAKE_BINARY_DIR})
 set(SOURCEDIR ${CMAKE_SOURCE_DIR})
 
 set(PGN_POOL_SIZE ${PGN_POOL_SIZE})
+set(MAX_J1939_SESSIONS ${MAX_J1939_SESSIONS})
 
 function(COMPILER_DUMPVERSION _OUTPUT_VERSION)
     # Remove whitespaces from the argument.
@@ -66,6 +67,7 @@ check_include_file(sys/stat.h HAVE_SYS_STAT_H)
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(time.h HAVE_TIME_H)
 check_include_file(unistd.h HAVE_UNISTD_H)
+check_include_file(stdatomic.h HAVE_STDATOMIC_H)
 
 if (HAVE_TIME_H)
     check_struct_has_member("struct timespec" tv_sec "time.h" HAVE_STRUCT_TIMESPEC)

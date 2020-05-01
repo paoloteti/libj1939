@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <time.h>
 #include <bits/time.h>
 #include <pthread.h>
@@ -16,11 +17,32 @@
 
 extern void j1939_task_yield(void);
 
-static int cansock;
+static int cansock = -1;
 
 int connect_canbus(const char *can_ifname);
 int disconnect_canbus(void);
 
+static inline ssize_t xread(int fd, void *buf, size_t len)
+{
+	ssize_t nr;
+	while (1) {
+		nr = read(fd, buf, len);
+		if ((nr < 0) && (errno == EAGAIN || errno == EINTR))
+			continue;
+		return nr;
+	}
+}
+
+static inline ssize_t xwrite(int fd, const void *buf, size_t len)
+{
+	ssize_t nr;
+	while (1) {
+		nr = write(fd, buf, len);
+		if ((nr < 0) && (errno == EAGAIN || errno == EINTR))
+			continue;
+		return nr;
+	}
+}
 
 int connect_canbus(const char *can_ifname)
 {
@@ -33,6 +55,7 @@ int connect_canbus(const char *can_ifname)
 		return sock;
 	}
 
+	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, can_ifname, IFNAMSIZ);
 	ioctl(sock, SIOCGIFINDEX, &ifr);
 
@@ -55,7 +78,17 @@ int disconnect_canbus(void)
 
 int j1939_filter(struct j1939_pgn_filter *filter, uint32_t num_filters)
 {
-	return 0;
+	struct can_filter rfilter[num_filters];
+	uint32_t id;
+
+	for (size_t i = 0; i < num_filters; i++) {
+		id = j1939_pgn2id(filter[i].pgn, filter[i].priority,
+				  filter[i].addr);
+		rfilter[i].can_id = id | CAN_EFF_FLAG;
+		rfilter[i].can_mask = filter[i].pgn_mask;
+	}
+	return setsockopt(cansock, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter,
+			  sizeof(rfilter));
 }
 
 int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
@@ -67,7 +100,7 @@ int j1939_cansend(uint32_t id, uint8_t *data, uint8_t len)
 	frame.can_dlc = len;
 	memcpy(frame.data, data, frame.can_dlc);
 
-	ret = write(cansock, &frame, sizeof(frame));
+	ret = xwrite(cansock, &frame, sizeof(frame));
 	if (ret != sizeof(frame)) {
 		return -1;
 	}
@@ -79,7 +112,7 @@ int j1939_canrcv(uint32_t *id, uint8_t *data)
 	int ret;
 	struct can_frame frame;
 
-	ret = read(cansock, &frame, sizeof(frame));
+	ret = xread(cansock, &frame, sizeof(frame));
 	if (ret != sizeof(frame)) {
 		return -1;
 	}

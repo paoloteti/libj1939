@@ -20,6 +20,7 @@ include(DefinePlatformDefaults)
 include(CompilerChecks.cmake)
 
 set(PGN_POOL_SIZE 16 CACHE STRING "PGN Pool size")
+set(MAX_J1939_SESSIONS 4 CACHE STRING "Max number of parallel sessions")
 
 
 # config.h checks
@@ -37,6 +38,7 @@ set(J1939_SRC
     ${J1939_DIR}/hasht.c
     ${J1939_DIR}/pgn_pool.c
     ${J1939_DIR}/time.c
+    ${J1939_DIR}/sessions.c
 )
 
 include_directories(

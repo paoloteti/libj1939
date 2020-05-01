@@ -7,13 +7,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "atomic.h"
 #include "compat.h"
 #include "compiler.h"
 #include "j1939.h"
 #include "pgn.h"
 #include "pgn_pool.h"
 #include "j1939_time.h"
-#include <stdio.h>
+#include "session.h"
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
@@ -33,14 +34,6 @@
 #define CONN_MODE_BAM 0x20u
 #define CONN_MODE_ABORT 0xFFu
 
-static int cts_done;
-static uint8_t cts_num_packets;
-static uint8_t cts_next_packet;
-static int eom_ack;
-static uint16_t eom_ack_size;
-static uint8_t eom_ack_num_packets;
-static uint8_t tp_num_packets;
-static uint16_t tp_tot_size;
 static pgn_callback_t user_rcv_tp_callback;
 static pgn_error_cb_t user_error_cb;
 
@@ -124,7 +117,7 @@ int send_tp_bam(const uint8_t priority, const uint8_t src, uint8_t *data,
 	};
 
 	if (unlikely(len > J1939_MAX_DATA_LEN)) {
-		return -EARGS;
+		return -J1939_EARGS;
 	}
 
 	ret = j1939_send(TP_CM, priority, src, ADDRESS_GLOBAL, bam, DLC_MAX);
@@ -155,53 +148,61 @@ static int send_abort(const uint8_t src, const uint8_t dst,
 static int tp_cts_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			   uint8_t dest, uint8_t *data, uint8_t len)
 {
-	cts_num_packets = data[1];
-	cts_next_packet = data[2];
-	cts_done = 1;
-	return 0;
+	struct j1939_session *sess = j1939_session_search_addr(src, dest);
+	if (sess == NULL) {
+		return -1;
+	}
+	sess->cts_num_packets = data[1];
+	sess->cts_next_packet = data[2];
+	atomic_set(&sess->cts_done, 1);
+	return 1;
 }
 
-static uint8_t wait_tp_cts(const j1939_pgn_t pgn, const uint8_t src)
+static uint8_t wait_tp_cts(const j1939_pgn_t pgn, const uint8_t src,
+			   const uint8_t dst)
 {
-	cts_done = 0;
+	uint8_t ret;
+	struct j1939_session *sess = j1939_session_search_addr(src, dst);
+	if (sess == NULL) {
+		return REASON_NO_RESOURCE;
+	}
 
-	uint32_t now = j1939_get_time();
-	while (!elapsed(now, T3) && !cts_done) {
+	sess->timeout = j1939_get_time();
+	while (!elapsed(sess->timeout, T3) && !atomic_get(&sess->cts_done)) {
 #if defined(TP_TASK_YIELD)
 		j1939_task_yield();
 #endif
 	}
-	return cts_done ? REASON_NONE : REASON_TIMEOUT;
+
+	ret = atomic_get(&sess->cts_done) ? REASON_NONE : REASON_TIMEOUT;
+	atomic_set(&sess->cts_done, 0);
+	return ret;
 }
 
 static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			       uint8_t dest, uint8_t *data, uint8_t len)
 {
-	eom_ack_size = (data[1] << 8) | (data[2]);
-	eom_ack_num_packets = data[3];
-	eom_ack = 1;
-	return 0;
-}
-
-static int wait_tp_eom_ack(const j1939_pgn_t pgn, const uint8_t src,
-			   const uint16_t size, const uint8_t npackets)
-{
-	eom_ack = 0;
-
-	uint32_t now = j1939_get_time();
-	while (!elapsed(now, T3) && !eom_ack) {
-#if defined(TP_TASK_YIELD)
-		j1939_task_yield();
-#endif
+	int ret = 0;
+	struct j1939_session *sess = j1939_session_search_addr(src, dest);
+	if (sess == NULL) {
+		return -J1939_ENO_RESOURCE;
 	}
 
-	if (!eom_ack) {
-		return -ETIMEOUT;
+	if (elapsed(sess->timeout, T3)) {
+		return -J1939_ETIMEOUT;
 	}
-	if (eom_ack_size == size && eom_ack_num_packets == npackets) {
-		return -EINCOMPLETE;
+
+	atomic_set(&sess->eom_ack, 1);
+	uint8_t eom_ack_size = (data[1] << 8) | (data[2]);
+	uint8_t eom_ack_num_packets = data[3];
+
+	if (sess->eom_ack_size != eom_ack_size ||
+	    sess->eom_ack_num_packets != eom_ack_num_packets) {
+		ret = -J1939_EINCOMPLETE;
 	}
-	return 0;
+
+	j1939_session_close(src, dest);
+	return ret;
 }
 
 static int send_tp_eom_ack(const uint8_t src, const uint8_t dst,
@@ -224,7 +225,9 @@ static int send_tp_eom_ack(const uint8_t src, const uint8_t dst,
 int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 	     const uint8_t dst, uint8_t *data, const uint16_t len)
 {
+	bool initiated = false;
 	int ret;
+	struct j1939_session *sess;
 	uint8_t num_packets, reason;
 	uint16_t size;
 
@@ -237,29 +240,48 @@ int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 		return j1939_send(pgn, priority, src, dst, data, len);
 	}
 
+	sess = j1939_session_open(src, dst);
+	if (sess == NULL) {
+		return -J1939_ENO_RESOURCE;
+	}
+
 	num_packets = num_packet_from_size(len);
+
+	sess->eom_ack_num_packets = num_packets;
+	sess->eom_ack_size = len;
 
 	/* Send Request To Send (RTS) */
 	ret = send_tp_rts(priority, src, dst, len, num_packets);
 	if (unlikely(ret < 0)) {
-		return ret;
+		goto out;
 	}
 
 	while (num_packets > 0) {
 		/* Wait Clear To Send (CTS) */
-		reason = wait_tp_cts(TP_CM, dst);
+		reason = wait_tp_cts(TP_CM, src, dst);
 		if (unlikely(reason != REASON_NONE)) {
-			return send_abort(src, dst, reason);
+			if (initiated) {
+				ret = send_abort(src, dst, reason);
+			} else {
+				ret = -J1939_EBUSY;
+			}
+			goto out;
+		} else {
+			initiated = true;
 		}
 
-		num_packets -= cts_num_packets;
-		size = MIN(cts_num_packets * DEFRAG_DLC_MAX, len);
+		num_packets -= sess->cts_num_packets;
+		size = MIN(sess->cts_num_packets * DEFRAG_DLC_MAX, len);
 		ret = defrag_send(size, J1939_PRIORITY_LOW, src, dst, data);
 		if (unlikely(ret < 0)) {
-			return ret;
+			goto out;
 		}
 	}
-	return send_tp_eom_ack(src, dst, len, num_packets);
+	ret = send_tp_eom_ack(src, dst, len, num_packets);
+
+out:
+	j1939_session_close(src, dst);
+	return ret;
 }
 
 int j1939_address_claimed(uint8_t src, ecu_name_t name)
@@ -315,7 +337,7 @@ static int pgn_abort(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 		     uint8_t dest, uint8_t *data, uint8_t len)
 {
 	if (user_error_cb) {
-		user_error_cb(pgn, priority, src, dest, data[0]);
+		user_error_cb(pgn, priority, src, dest, data[1]);
 	}
 	return 0;
 }
@@ -323,20 +345,32 @@ static int pgn_abort(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 static int request_to_send(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			   uint8_t dest, uint8_t *data, uint8_t len)
 {
-	tp_tot_size = htobe16((data[1] << 8) | data[2]);
-	tp_num_packets = num_packet_from_size(tp_tot_size);
-	return j1939_send_tp_cts(src, dest, tp_num_packets, 0);
+	struct j1939_session *sess = j1939_session_open(src, dest);
+	if (sess == NULL) {
+		return -1;
+	}
+
+	sess->tp_tot_size = htobe16((data[1] << 8) | data[2]);
+	sess->tp_num_packets = num_packet_from_size(sess->tp_tot_size);
+	return j1939_send_tp_cts(src, dest, sess->tp_num_packets, 0);
 }
 
 static int _rcv_tp(j1939_pgn_t pgn, uint8_t priority, uint8_t src, uint8_t dest,
 		   uint8_t *data, uint8_t len)
 {
 	int ret = 0;
+	struct j1939_session *sess = j1939_session_search_addr(src, dest);
 
-	if (tp_num_packets == 0) {
-		ret = wait_tp_eom_ack(pgn, src, tp_tot_size, tp_num_packets);
+	if (sess == NULL) {
+		return -1;
 	}
-	tp_num_packets--;
+
+	if (sess->tp_num_packets == 1) {
+		/* Next packet expected to be EOM ACK */
+		atomic_set(&sess->eom_ack, 0);
+		sess->timeout = j1939_get_time();
+	}
+	sess->tp_num_packets--;
 
 	if (user_rcv_tp_callback) {
 		user_rcv_tp_callback(pgn, priority, src, dest, data, len);
@@ -353,11 +387,14 @@ int j1939_setup(pgn_callback_t rcv_tp, pgn_error_cb_t err_cb)
 	user_rcv_tp_callback = rcv_tp;
 	user_error_cb = err_cb;
 
+	pgn_pool_init();
 	pgn_register(TP_CM, CONN_MODE_CTS, tp_cts_received);
 	pgn_register(TP_CM, CONN_MODE_ABORT, pgn_abort);
 	pgn_register(TP_CM, CONN_MODE_RTS, request_to_send);
 	pgn_register(TP_CM, CONN_MODE_EOM_ACK, tp_eom_ack_received);
 	pgn_register(TP_DT, 0, _rcv_tp);
+
+	j1939_session_init();
 	return 0;
 }
 

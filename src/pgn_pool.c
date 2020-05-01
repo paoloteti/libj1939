@@ -13,10 +13,14 @@
 static struct hasht_entry entries[PGN_POOL_SIZE];
 static struct hasht pgn_pool = HASHT_INIT(entries, PGN_POOL_SIZE);
 
-
 static inline uint32_t make_key(uint32_t pgn, uint8_t code)
 {
 	return pgn | (code << 24);
+}
+
+void pgn_pool_init(void)
+{
+	hasht_init(&pgn_pool);
 }
 
 int pgn_register(const uint32_t pgn, const uint8_t code,
@@ -34,7 +38,6 @@ void pgn_deregister_all(void)
 {
 	hasht_clear(&pgn_pool);
 }
-
 
 int pgn_pool_receive(void)
 {

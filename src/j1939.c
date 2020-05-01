@@ -37,6 +37,13 @@
 #include "compiler.h"
 #include "pgn.h"
 
+uint32_t j1939_pgn2id(const j1939_pgn_t pgn, const uint8_t priority,
+		      const uint8_t src)
+{
+	return (((uint32_t)priority & PRGN_PRIORITY_MASK) << 26) |
+	       ((pgn & PGN_MASK) << 8) | (uint32_t)src;
+}
+
 int j1939_send(const j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 	       const uint8_t dst, uint8_t *data, const uint32_t len)
 {
@@ -46,8 +53,7 @@ int j1939_send(const j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 		return -1;
 	}
 
-	id = ((uint32_t)priority << 26) | ((pgn & PGN_MASK) << 8) |
-	     (uint32_t)src;
+	id = j1939_pgn2id(pgn, priority, src);
 
 	/* If PGN is peer-to-peer, add destination address to the ID */
 	if (j1939_pdu_is_p2p(pgn)) {
