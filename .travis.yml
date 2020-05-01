@@ -8,20 +8,20 @@ jobs:
       compiler: "gcc-7"
       env: BUILD='Debug' CC=gcc-7 CXX=g++-7 OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
-      addons: *gcc7 linux-headers-generic
+      addons: *gcc7
 
     - os: linux
       compiler: "gcc-7"
       env: BUILD='Release' CC=gcc-7 CXX=g++-7 OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
-      addons: *gcc7 linux-headers-generic
+      addons: *gcc7
 
     - os: linux
       arch: arm64
       compiler: "gcc"
       env: BUILD='Release' OPT=-DLIBJ1939_BUILD_EXAMPLE=1
       dist: bionic
-      addons: *gcc7 linux-headers-generic
+      addons: *gcc7
 
   allow_failures:
     - os: linux
@@ -29,13 +29,16 @@ jobs:
       env: BUILD='Release' AR=arm-none-eabi-ar
            TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-cross-arm-none-eabi.cmake
       dist: bionic
-      addons: linux-headers-generic
+      addons:
         apt:
           sources:
           - sourceline: 'ppa:team-gcc-arm-embedded/ppa'
           packages:
           - gcc-arm-embedded
 
+before_install:
+  - sudo apt-get -y install linux-headers-generic
+ 
 script:
   - cmake --version
   - ${CC} --version

@@ -22,7 +22,6 @@
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
-#include <linux/can/j1939.h>
 
 #include "j1939.h"
 
