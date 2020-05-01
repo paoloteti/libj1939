@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
 #ifndef __HASHT_H__
 #define __HASHT_H__
 

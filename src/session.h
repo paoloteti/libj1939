@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __SESSION_H__
 #define __SESSION_H__
