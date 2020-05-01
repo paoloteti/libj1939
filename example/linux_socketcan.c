@@ -126,7 +126,7 @@ uint32_t j1939_get_time(void)
 {
 	struct timespec tv;
 	clock_gettime(CLOCK_MONOTONIC, &tv);
-	return tv.tv_sec * 1000 + tv.tv_nsec / 1000;
+	return tv.tv_sec * 1000 + tv.tv_nsec / 1000000;
 }
 
 void j1939_task_yield(void)
