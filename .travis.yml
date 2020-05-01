@@ -23,10 +23,9 @@ jobs:
       dist: bionic
       addons: *gcc7
 
-  allow_failures:
     - os: linux
-      compiler: "arm-none-eabi-gcc"
-      env: BUILD='Release' AR=arm-none-eabi-ar
+      compiler: "gcc"
+      env: BUILD='Release'
            TOOLCHAIN=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-cross-arm-none-eabi.cmake
       dist: bionic
       addons:
@@ -45,7 +44,7 @@ script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=${BUILD} ${TOOLCHAIN} ${OPT} ..
-  - cmake --build .
+  - VERBOSE=1 cmake --build .
 
 notifications:
   email:
