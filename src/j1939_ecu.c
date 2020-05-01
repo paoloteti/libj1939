@@ -148,10 +148,11 @@ static int send_abort(const uint8_t src, const uint8_t dst,
 static int tp_cts_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			   uint8_t dest, uint8_t *data, uint8_t len)
 {
-	struct j1939_session *sess = j1939_session_search_addr(src, dest);
+	struct j1939_session *sess = j1939_session_search_addr(dest, src);
 	if (sess == NULL) {
 		return -1;
 	}
+
 	sess->cts_num_packets = data[1];
 	sess->cts_next_packet = data[2];
 	atomic_set(&sess->cts_done, 1);
@@ -352,7 +353,7 @@ static int request_to_send(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 
 	sess->tp_tot_size = htobe16((data[1] << 8) | data[2]);
 	sess->tp_num_packets = num_packet_from_size(sess->tp_tot_size);
-	return j1939_send_tp_cts(src, dest, sess->tp_num_packets, 0);
+	return j1939_send_tp_cts(dest, src, sess->tp_num_packets, 0);
 }
 
 static int _rcv_tp(j1939_pgn_t pgn, uint8_t priority, uint8_t src, uint8_t dest,
