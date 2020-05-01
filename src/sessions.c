@@ -59,7 +59,7 @@ struct j1939_session *j1939_session_open(const uint8_t src, const uint8_t dest)
 struct j1939_session *j1939_session_search_addr(const uint16_t src,
 						const uint16_t dst)
 {
-	uint32_t key = j1939_session_hash(src, dst);
+	uint16_t key = j1939_session_hash(src, dst);
 	return j1939_session_search(key);
 }
 
