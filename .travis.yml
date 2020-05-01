@@ -2,10 +2,6 @@ language: c
 os: linux
 dist: bionic
 
-git:
-  depth: 16
-  quiet: true
-
 jobs:
   include:
     - os: linux
