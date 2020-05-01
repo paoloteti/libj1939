@@ -74,7 +74,7 @@ static void *sender(void *x)
 	do {
 		memset(data, sess, sizeof(data));
 		sess++;
-	retry:
+retry:
 		ret = j1939_tp(PGN, 6, src, DEST, data, sizeof(data));
 		if (ret < 0) {
 			if (ret == -J1939_EBUSY) {
