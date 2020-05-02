@@ -125,7 +125,7 @@ int j1939_canrcv(uint32_t *id, uint8_t *data)
 uint32_t j1939_get_time(void)
 {
 	struct timespec tv;
-	clock_gettime(CLOCK_MONOTONIC, &tv);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &tv);
 	return tv.tv_sec * 1000 + tv.tv_nsec / 1000000;
 }
 
