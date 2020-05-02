@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include "hasht.h"
 
-#include <stdio.h>
 
 #define KEY_UNDEF_VAL (0x1u << 31)
 #define KEY_MASK(_k) ((_k)&0x7FFFFFFFu) /* 30 bits keys */
