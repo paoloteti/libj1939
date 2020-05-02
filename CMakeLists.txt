@@ -20,7 +20,7 @@ include(DefinePlatformDefaults)
 include(CompilerChecks.cmake)
 
 set(PGN_POOL_SIZE 16 CACHE STRING "PGN Pool size")
-set(MAX_J1939_SESSIONS 4 CACHE STRING "Max number of parallel sessions")
+set(MAX_J1939_SESSIONS 12 CACHE STRING "Max number of parallel sessions")
 
 
 # config.h checks
