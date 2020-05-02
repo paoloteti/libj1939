@@ -154,7 +154,7 @@
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #cmakedefine WORDS_BIGENDIAN 1
 
-#cmakedefine PGN_POOL_SIZE 16
+#cmakedefine PGN_POOL_SIZE ${PGN_POOL_SIZE}
 
 /* Max number of active session (i.e different source address) */
-#cmakedefine MAX_J1939_SESSIONS 4
+#cmakedefine MAX_J1939_SESSIONS ${MAX_J1939_SESSIONS}
