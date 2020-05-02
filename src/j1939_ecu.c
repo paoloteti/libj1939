@@ -184,7 +184,7 @@ static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			       uint8_t dest, uint8_t *data, uint8_t len)
 {
 	int ret = 0;
-	struct j1939_session *sess = j1939_session_search_addr(src, dest);
+	struct j1939_session *sess = j1939_session_search_addr(dest, src);
 	if (sess == NULL) {
 		ret = -J1939_ENO_RESOURCE;
 		goto err;
@@ -205,7 +205,7 @@ static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 		goto err;
 	}
 
-	j1939_session_close(src, dest);
+	j1939_session_close(dest, src);
 	return 0;
 
 err:
@@ -228,7 +228,7 @@ static int send_tp_eom_ack(const uint8_t src, const uint8_t dst,
 		PGN_FORMAT(TP_CM),
 		PGN_DATA_PAGE(TP_CM),
 	};
-	return j1939_send(TP_CM, J1939_PRIORITY_LOW, src, dst, data,
+	return j1939_send(TP_CM, J1939_PRIORITY_LOW, dst, src, data,
 			  ARRAY_SIZE(data));
 }
 
