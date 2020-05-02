@@ -56,7 +56,7 @@ int connect_canbus(const char *can_ifname)
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, can_ifname, IFNAMSIZ);
+	strncpy(ifr.ifr_name, can_ifname, IFNAMSIZ - 1);
 	ioctl(sock, SIOCGIFINDEX, &ifr);
 
 	memset(&addr, 0, sizeof(addr));
