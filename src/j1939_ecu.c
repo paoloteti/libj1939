@@ -186,11 +186,13 @@ static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 	int ret = 0;
 	struct j1939_session *sess = j1939_session_search_addr(src, dest);
 	if (sess == NULL) {
-		return -J1939_ENO_RESOURCE;
+		ret = -J1939_ENO_RESOURCE;
+		goto err;
 	}
 
 	if (elapsed(sess->timeout, T3)) {
-		return -J1939_ETIMEOUT;
+		ret = -J1939_ETIMEOUT;
+		goto err;
 	}
 
 	atomic_set(&sess->eom_ack, 1);
@@ -200,9 +202,16 @@ static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 	if (sess->eom_ack_size != eom_ack_size ||
 	    sess->eom_ack_num_packets != eom_ack_num_packets) {
 		ret = -J1939_EINCOMPLETE;
+		goto err;
 	}
 
 	j1939_session_close(src, dest);
+	return 0;
+
+err:
+	if (user_error_cb) {
+		user_error_cb(pgn, priority, src, dest, ret);
+	}
 	return ret;
 }
 
@@ -359,7 +368,6 @@ static int request_to_send(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 static int _rcv_tp(j1939_pgn_t pgn, uint8_t priority, uint8_t src, uint8_t dest,
 		   uint8_t *data, uint8_t len)
 {
-	int ret = 0;
 	struct j1939_session *sess = j1939_session_search_addr(src, dest);
 
 	if (sess == NULL) {
@@ -377,10 +385,7 @@ static int _rcv_tp(j1939_pgn_t pgn, uint8_t priority, uint8_t src, uint8_t dest,
 		user_rcv_tp_callback(pgn, priority, src, dest, data, len);
 	}
 
-	if (ret < 0 && user_error_cb) {
-		user_error_cb(pgn, priority, src, dest, ret);
-	}
-	return ret;
+	return 0;
 }
 
 int j1939_setup(pgn_callback_t rcv_tp, pgn_error_cb_t err_cb)
