@@ -3,14 +3,14 @@
 #ifndef __PGN_H__
 #define __PGN_H__
 
-#define PGN_FORMAT(_x) (((_x) >> 8) & 0xff)
-#define PGN_SPECIFIC(_x) ((_x) & 0xff)
-#define PGN_DATA_PAGE(_x) (((_x) >> 17) & 0x1)
+#define PGN_FORMAT(_x) (((_x) >> 8) & 0xffu)
+#define PGN_SPECIFIC(_x) ((_x) & 0xffu)
+#define PGN_DATA_PAGE(_x) (((_x) >> 17) & 0x1u)
 
 #define PRGN_PRIORITY_MASK 0x3u
 #define PGN_MASK 0x3FFFFu
 #define PGN_FROM(_f, _s, _dp)                                                  \
-	(((_dp) & 0x1) << 17) | (((_f) & 0xff) << 8) | ((_s) & 0xff)
+	(((_dp) & 0x1u) << 17) | (((_f) & 0xffu) << 8) | ((_s) & 0xffu)
 
 #define BAM 	0x00FEECu
 #define TP_CM 	0x00EC00u

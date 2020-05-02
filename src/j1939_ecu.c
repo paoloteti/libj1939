@@ -21,18 +21,18 @@
 #define DLC_MAX 8u /*<! CANbus max DLC value */
 #define DEFRAG_DLC_MAX (DLC_MAX - 1u)
 
-#define REASON_NONE 0x00u
-#define REASON_BUSY 0x01u /*<! Node is busy */
-#define REASON_NO_RESOURCE 0x02u /*<! Lacking the necessary resources */
-#define REASON_TIMEOUT 0x03u /*<! A timeout occurred */
-#define REASON_CTS_WHILE_DT 0x04u /*<! CTS received when during transfer */
-#define REASON_INCOMPLETE 0x05u
+#define REASON_NONE 		0x00u /*<! No Errors */
+#define REASON_BUSY 		0x01u /*<! Node is busy */
+#define REASON_NO_RESOURCE 	0x02u /*<! Lacking the necessary resources */
+#define REASON_TIMEOUT 		0x03u /*<! A timeout occurred */
+#define REASON_CTS_WHILE_DT 	0x04u /*<! CTS received when during transfer */
+#define REASON_INCOMPLETE 	0x05u /*<! Incomplete transfer */
 
-#define CONN_MODE_RTS 0x10u
-#define CONN_MODE_CTS 0x11u
-#define CONN_MODE_EOM_ACK 0x13u
-#define CONN_MODE_BAM 0x20u
-#define CONN_MODE_ABORT 0xFFu
+#define CONN_MODE_RTS 		0x10u
+#define CONN_MODE_CTS 		0x11u
+#define CONN_MODE_EOM_ACK 	0x13u
+#define CONN_MODE_BAM 		0x20u
+#define CONN_MODE_ABORT 	0xFFu
 
 static pgn_callback_t user_rcv_tp_callback;
 static pgn_error_cb_t user_error_cb;

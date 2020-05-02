@@ -7,7 +7,7 @@
 
 
 #define KEY_UNDEF_VAL (0x1u << 31)
-#define KEY_MASK(_k) ((_k)&0x7FFFFFFFu) /* 30 bits keys */
+#define KEY_MASK(_k) ((_k) & 0x7FFFFFFFu) /* 30 bits keys */
 
 static inline uint32_t next_hash(struct hasht *ht, const uint32_t hash)
 {
