@@ -54,7 +54,9 @@ static void error_handler(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 			  uint8_t dest, int err)
 {
 	printf("[%02x %02x] ERROR: %d\n", src, dest, err);
+#ifdef STOP_ON_ERROR
 	stop = 1;
+#endif
 }
 
 int main(void)
