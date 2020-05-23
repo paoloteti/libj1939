@@ -16,6 +16,7 @@
 #include "j1939_time.h"
 #include "session.h"
 
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 #define DLC_MAX 8u /*<! CANbus max DLC value */
@@ -41,8 +42,7 @@ __weak void j1939_task_yield(void);
 
 static inline uint8_t num_packet_from_size(uint8_t size)
 {
-	uint8_t min = size / DEFRAG_DLC_MAX;
-	return (size % DEFRAG_DLC_MAX) == 0 ? min : min + 1;
+	return DIV_ROUND_UP(size, DEFRAG_DLC_MAX);
 }
 
 static int send_tp_rts(uint8_t priority, uint8_t src, uint8_t dst,
