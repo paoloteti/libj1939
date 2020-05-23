@@ -31,7 +31,7 @@ void j1939_session_init(void)
 
 static struct j1939_session *assign_session(void)
 {
-	for (int8_t i = 0; i < MAX_J1939_SESSIONS; i++) {
+	for (size_t i = 0; i < MAX_J1939_SESSIONS; i++) {
 		if (session_dict[i].id < 0) {
 			memset(&session_dict[i], 0,
 			       sizeof(struct j1939_session));
