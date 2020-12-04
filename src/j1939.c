@@ -78,6 +78,7 @@ int j1939_receive(j1939_pgn_t *pgn, uint8_t *priority, uint8_t *src,
 	if (received >= 0) {
 		*len = received;
 		*priority = (id & 0x1C000000u) >> 26;
+		*pgn = id;
 		*src = id & 0x000000FFu;
 
 		/*
