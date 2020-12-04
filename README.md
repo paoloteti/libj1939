@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/paoloteti/libj1939.svg?branch=master)](https://travis-ci.org/paoloteti/libj1939)
+[![Build Status](https://travis-ci.com/paoloteti/libj1939.svg?branch=master)](https://travis-ci.com/paoloteti/libj1939)
 
 # J1939 Library
 
