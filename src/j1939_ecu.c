@@ -196,7 +196,7 @@ static int tp_eom_ack_received(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 	}
 
 	atomic_set(&sess->eom_ack, 1);
-	uint8_t eom_ack_size = (data[1] << 8) | (data[2]);
+	uint16_t eom_ack_size = htobe16((data[1] << 8) | data[2]);
 	uint8_t eom_ack_num_packets = data[3];
 
 	if (sess->eom_ack_size != eom_ack_size ||
@@ -266,7 +266,8 @@ int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 		goto out;
 	}
 
-	while (num_packets > 0) {
+	uint8_t np = num_packets;
+	while (np > 0) {
 		/* Wait Clear To Send (CTS) */
 		reason = wait_tp_cts(TP_CM, src, dst);
 		if (unlikely(reason != REASON_NONE)) {
@@ -280,7 +281,7 @@ int j1939_tp(j1939_pgn_t pgn, const uint8_t priority, const uint8_t src,
 			initiated = true;
 		}
 
-		num_packets -= sess->cts_num_packets;
+		np -= sess->cts_num_packets;
 		size = MIN(sess->cts_num_packets * DEFRAG_DLC_MAX, len);
 		ret = defrag_send(size, J1939_PRIORITY_LOW, src, dst, data);
 		if (unlikely(ret < 0)) {
@@ -362,6 +363,8 @@ static int request_to_send(j1939_pgn_t pgn, uint8_t priority, uint8_t src,
 
 	sess->tp_tot_size = htobe16((data[1] << 8) | data[2]);
 	sess->tp_num_packets = num_packet_from_size(sess->tp_tot_size);
+	sess->eom_ack_num_packets = sess->tp_num_packets;
+	sess->eom_ack_size = sess->tp_tot_size;
 	return j1939_send_tp_cts(dest, src, sess->tp_num_packets, 0);
 }
 
