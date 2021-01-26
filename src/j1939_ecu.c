@@ -66,7 +66,7 @@ static int defrag_send(uint16_t size, const uint8_t priority, const uint8_t src,
 		       const uint8_t dest, uint8_t *data)
 {
 	int ret;
-	uint8_t seqno = 0;
+	uint8_t seqno = 1;
 	uint8_t frame[DLC_MAX];
 
 	while (size > 0) {
