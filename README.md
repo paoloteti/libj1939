@@ -8,7 +8,7 @@ Library to work with J1939 Frames used in CAN bus in car and trucks industries.
 ## Coding style
 
 The whole software is programmed using the Linux kernel coding style, see
-http://lxr.linux.no/linux/Documentation/CodingStyle for details.
+https://www.kernel.org/doc/html/v5.9/process/coding-style.html for details.
 
 ## Amendments to the Linux kernel coding style
 
@@ -26,7 +26,7 @@ http://lxr.linux.no/linux/Documentation/CodingStyle for details.
 
 ## Semantic versioning
 
-Software is numbered according to (Semantic versioning 2.0.0)[https://semver.org] rules. 
+Software is numbered according to [Semantic versioning 2.0.0](https://semver.org) rules. 
 Semantic versioning uses a sequence of three digits (Major.Minor.Patch),
 an optional prerelease tag and optional build meta tag.
 
